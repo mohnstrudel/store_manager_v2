@@ -18,6 +18,7 @@
 #  product_id           :bigint           not null
 #  sale_id              :bigint           not null
 #  shopify_id           :string
+#  shopify_variant_id   :string
 #  variant_id           :bigint
 #  woo_id               :string
 #
@@ -28,12 +29,14 @@ class SaleItem < ApplicationRecord
   include Installments
   include Linkable
   include Profitability
+  include RevenueAllocation
   include RevenueDefaults
   include Shopable
+  include Syncable
   include Titled
   include VariantAssignment
 
-  audited associated_with: :sale
+  audited associated_with: :sale, except: :shopify_variant_id
   validate :validate_unique_woo_store_id
 
   db_belongs_to :product, inverse_of: :sale_items

@@ -26,6 +26,16 @@ class Sales::IndexResource < Sales::TaggingPageResource
     page.fetch(:criteria).slice(:hide_partial_payments, :missing_purchases_only, :tag_id)
   end
 
+  typelize :boolean
+  attribute :can_view_broken_sales do |page|
+    page.fetch(:can_view_broken_sales)
+  end
+
+  typelize :number, nullable: true
+  attribute :broken_problem_count do |page|
+    page.fetch(:broken_problem_count)
+  end
+
   typelize :string, nullable: true
   attribute :last_sync_at do |_page|
     format_last_fetched_at(Config.shopify_sales_sync_at)

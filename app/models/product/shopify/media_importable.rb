@@ -1,50 +1,53 @@
 # frozen_string_literal: true
 
 module Product::Shopify::MediaImportable
-  def import_shopify_media(parsed_media:)
+  def import_shopify_media(parsed_media:, force: false)
     return media.destroy_all if parsed_media.blank?
 
-    downloaded_files = Product::Shopify::Media::Downloader.call(media_items: parsed_media)
-    remove_obsolete_shopify_media(downloaded_files)
-    upsert_shopify_media(media_items: parsed_media, downloaded_files:)
+    upsert = Product::Shopify::Media::Upsert.new(product: self, media_items: parsed_media, force:)
+    items_to_download = upsert.media_items_to_download
+    downloaded_files = Product::Shopify::Media::Downloader.call(media_items: items_to_download)
+    upsert.call(downloads_by_key: downloaded_files.downloads_by_key)
+    remove_obsolete_shopify_media(parsed_media:, items_to_download:, downloaded_files:)
   ensure
     downloaded_files&.close_downloads
   end
 
+  def shopify_media_unchanged?(parsed_media)
+    images = parsed_media.reject { |item| item[:id].blank? && item[:url].blank? }
+    return false if images.any? { |item| item[:id].blank? || item[:url].blank? }
+
+    stored_shopify_images.tally == images.map { |item| item.values_at(:id, :url, :alt, :position) }.tally
+  end
+
   private
 
-  def remove_obsolete_shopify_media(downloaded_files)
-    return if downloaded_files.downloaded_checksums.blank?
+  def remove_obsolete_shopify_media(parsed_media:, items_to_download:, downloaded_files:)
+    return if items_to_download.any? && downloaded_files.downloads_by_key.empty?
 
-    obsolete_shopify_media_for(downloaded_files).destroy_all
+    obsolete_shopify_media(
+      store_ids: parsed_media.filter_map { |item| item[:id].presence },
+      downloaded_checksums: downloaded_files.downloaded_checksums
+    ).destroy_all
   end
 
-  def obsolete_shopify_media_for(downloaded_files)
-    obsolete_media = media_with_outdated_checksums(downloaded_files.downloaded_checksums)
-    exclude_failed_download_media(obsolete_media, downloaded_files.failed_store_ids)
-  end
+  def obsolete_shopify_media(store_ids:, downloaded_checksums:)
+    store_info = StoreInfo.arel_table
 
-  def media_with_outdated_checksums(downloaded_checksums)
     media
       .joins(image_attachment: :blob)
+      .left_joins(:shopify_info)
+      .where(store_info[:store_id].eq(nil).or(store_info[:store_id].not_in(store_ids)))
       .where.not(active_storage_blobs: {checksum: downloaded_checksums})
   end
 
-  def exclude_failed_download_media(obsolete_media, failed_store_ids)
-    return obsolete_media if failed_store_ids.blank?
-
-    failed_download_media_ids = media
-      .joins(:store_infos)
-      .where(store_infos: {store_name: :shopify, store_id: failed_store_ids})
-      .select(:id)
-
-    obsolete_media.where.not(id: failed_download_media_ids)
-  end
-
-  def upsert_shopify_media(media_items:, downloaded_files:)
-    Product::Shopify::Media::Upsert.new(product: self).call(
-      media_items:,
-      downloads_by_key: downloaded_files.downloads_by_key
-    )
+  def stored_shopify_images
+    media.left_joins(:shopify_info, :image_attachment).pluck(
+      StoreInfo.arel_table[:store_id],
+      StoreInfo.arel_table[:source_url],
+      Media.arel_table[:alt],
+      Media.arel_table[:position],
+      ActiveStorage::Attachment.arel_table[:id]
+    ).map { |*image, attachment_id| attachment_id ? image : [*image, :unattached] }
   end
 end

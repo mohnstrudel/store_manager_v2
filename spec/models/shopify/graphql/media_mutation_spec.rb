@@ -25,22 +25,9 @@ RSpec.describe Shopify::Graphql::MediaMutation do
       expect(mutation).to include("status")
       expect(mutation).to include("fileStatus")
     end
-  end
 
-  describe ".status_query" do
-    it "returns a valid GraphQL query string" do
-      query = described_class.status_query
-
-      expect(query).to include("query")
-      expect(query).to include("node(id: $id)")
-      expect(query).to include("MediaImage")
-    end
-
-    it "includes status fields" do
-      query = described_class.status_query
-
-      expect(query).to include("status")
-      expect(query).to include("fileStatus")
+    it "requests every media a product can have" do
+      expect(described_class.attach).to include("media(first: 250)")
     end
   end
 

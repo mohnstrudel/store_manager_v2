@@ -17,6 +17,8 @@ class Product::Woo::Importer
     return if parsed_product.blank?
 
     import(parsed_product)
+  rescue ::Woo::Api::Client::NotFound
+    nil
   end
 
   def self.import(parsed_product)

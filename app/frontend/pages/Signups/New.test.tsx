@@ -6,8 +6,8 @@ import routes from "@/utils/routes";
 
 import New from "./New";
 
-vi.mock("@/components/flash-messages/FlashMessages", () => ({
-  default: () => <div data-testid="flash-messages" />,
+vi.mock("@/components/notifications/Notifications", () => ({
+  default: () => <div data-testid="notifications" />,
 }));
 
 describe("Signups/New", () => {
@@ -83,7 +83,7 @@ describe("Signups/New", () => {
       render(<>{New.layout?.(<div>Signup layout content</div>)}</>);
 
       expect(document.body).toHaveClass("wbg");
-      expect(screen.getByTestId("flash-messages")).toBeInTheDocument();
+      expect(screen.getByTestId("notifications")).toBeInTheDocument();
       expect(screen.getByText("Signup layout content")).toBeInTheDocument();
     });
   });

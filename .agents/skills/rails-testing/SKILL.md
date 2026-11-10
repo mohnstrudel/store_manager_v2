@@ -23,6 +23,12 @@ Load this skill with the owning architecture skill when work touches the boundar
 - Use VCR when exercising the HTTP client boundary against a representative provider exchange, including method and URL construction, parsing, or payload compatibility. Reuse a stable cassette for the same interaction.
 - Use WebMock for exact header, body, or request assertions and deterministic statuses, timeouts, malformed responses, or minimal unit cases.
 - Filter secrets and personal data; remove unstable headers and unrelated payload fields before committing a cassette.
+- Tests never load `.env`; dotenv is a development-only gem, so local runs match CI. Code under test that calls `ENV.fetch` without a default needs that key stubbed in the spec (`allow(ENV).to receive(:fetch).and_call_original` plus `.with("KEY")`).
+- Recording a new cassette is the only test run that needs real credentials. Delete the cassette file (`record: :once` re-records only when it is missing), load `.env` for that run alone, and confirm the `filter_sensitive_data` placeholders replaced every secret before committing:
+
+  ```sh
+  mise exec -- bundle exec dotenv -f .env bin/rspec spec/path/to_spec.rb
+  ```
 
 ## Shared Contracts
 

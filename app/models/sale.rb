@@ -101,7 +101,8 @@ class Sale < ApplicationRecord
       sale_items: [
         {product: {media: {image_attachment: :blob}}},
         {purchase_items: [:warehouse, purchase: :supplier]},
-        {variant: [:version, :color, :size]}
+        {variant: [:version, :color, :size]},
+        :shopify_variant_info
       ]
     )
   }
@@ -129,7 +130,8 @@ class Sale < ApplicationRecord
       sale_items: [
         {product: {media: {image_attachment: :blob}}},
         {purchase_items: [:warehouse, :shipping_company, {purchase: :supplier}]},
-        {variant: [:version, :color, :size]}
+        {variant: [:version, :color, :size]},
+        :shopify_variant_info
       ]
     )
   }

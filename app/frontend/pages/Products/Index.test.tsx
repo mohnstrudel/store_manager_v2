@@ -1,3 +1,4 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
@@ -58,8 +59,29 @@ describe("Products/Index", () => {
 
       expect(screen.getByText("Products Synchronization")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Fetch Everything" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Fetch Last 100 Products" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Fetch Changes" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Last 100/ })).not.toBeInTheDocument();
       expect(screen.getByRole("link", { name: "Track Jobs Progress" })).toBeInTheDocument();
+    });
+
+    it("posts the changes scope to the products pull path when Fetch Changes is clicked", async () => {
+      const user = userEvent.setup();
+      renderIndex();
+
+      await user.click(screen.getByRole("button", { name: "Store Sync" }));
+      await user.click(screen.getByRole("button", { name: "Fetch Changes" }));
+
+      expect(router.post).toHaveBeenCalledWith("/products/pull", { scope: "changes" });
+    });
+
+    it("posts no params to the products pull path when Fetch Everything is clicked", async () => {
+      const user = userEvent.setup();
+      renderIndex();
+
+      await user.click(screen.getByRole("button", { name: "Store Sync" }));
+      await user.click(screen.getByRole("button", { name: "Fetch Everything" }));
+
+      expect(router.post).toHaveBeenCalledWith("/products/pull", {});
     });
 
     it("shows the last sync time when last_sync_at is provided", async () => {

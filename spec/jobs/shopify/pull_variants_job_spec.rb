@@ -14,4 +14,8 @@ RSpec.describe Shopify::PullVariantsJob do
       expect(Variant::Shopify::Importer).to have_received(:import_all).with(product, parsed_variants)
     end
   end
+
+  it "keeps its job status for 10 minutes instead of the default 2 hours" do
+    expect(described_class.new.expiration).to eq(10.minutes.to_i)
+  end
 end

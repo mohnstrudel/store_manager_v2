@@ -5,13 +5,12 @@ module JobsStatusNotice
 
   private
 
-  def set_jobs_status_notice
+  def set_jobs_status_notice(message: "Started. You'll get a notification when it finishes. To follow progress, open the")
     flash[:notice] = {
-      message: "Success! Visit",
+      message:,
       link: {
-        label: "jobs statuses dashboard",
-        href: "/jobs/statuses",
-        suffix: "to track synchronization progress"
+        label: "jobs dashboard",
+        href: "/jobs/statuses"
       }
     }
   end

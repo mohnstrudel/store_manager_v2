@@ -6,14 +6,15 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
   let(:parsed_orders) { instance_eval(file_fixture("shopify_parsed_orders.rb").read) }
   let(:valid_parsed_order) { parsed_orders.first }
   let(:importer) { described_class.new(valid_parsed_order) }
+  let(:api_client) { instance_double(Shopify::Api::Client, fetch_product: nil) }
 
   def import_order(parsed_order = valid_parsed_order)
     described_class.import(parsed_order)
   end
 
   before do
-    created_variants = {}
-
+    allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
+    allow(Shopify::PullProductJob).to receive(:perform_later)
     allow(Product::Shopify::Importer).to receive(:import) do |parsed_product|
       product = Product.find_by_shopify_id(parsed_product[:store_id]) || Product.find_by(title: parsed_product[:title]) || Product.new
       product.assign_attributes(
@@ -24,19 +25,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       product.build_base_variant(sku: parsed_product[:sku] || "#{parsed_product[:title].parameterize}-#{rand(1000..9999)}")
       product.save! if product.new_record? || product.changed? || product.base_variant&.new_record? || product.base_variant&.changed?
       product
-    end
-
-    allow(Variant::Shopify::Importer).to receive(:import) do |product, parsed_variant|
-      variant_key = "#{product.id}-#{parsed_variant[:id]}"
-      created_variants[variant_key] ||= begin
-        variant = Variant.find_by_shopify_id(parsed_variant[:id]) || Variant.new(product: product)
-        variant = Variant.new(product: product) if variant.product_id != product.id
-        variant.version = Version.find_or_create_by(value: parsed_variant[:title] || "Default")
-        product.fill_variant_sku(variant, "shopify-sale-#{parsed_variant[:id] || parsed_variant[:title] || SecureRandom.hex(4)}")
-        variant.save!
-        variant.upsert_shopify_info(store_id: parsed_variant[:id]) if parsed_variant[:id].present?
-        variant
-      end
     end
   end
 
@@ -59,6 +47,17 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(Sale.count).to eq(1)
         expect(Customer.count).to eq(1)
         expect(SaleItem.count).to eq(1)
+      end
+
+      it "resolves the order's import failure when the import succeeds" do
+        store_order_id = "gid://shopify/Order/failed"
+        order = valid_parsed_order.deep_dup
+        order[:store_info] = order[:store_info].merge(store_id: store_order_id)
+        Sale::ImportFailure.record(store_name: "shopify", store_order_id:, message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+        import_order(order)
+
+        expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id:).resolved_at).to be_present
       end
 
       it "keeps local sales tags when the same order is imported again" do
@@ -278,7 +277,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         order[:sale_items].first[:product_store_id] = nil
         order[:sale_items].first[:variant_title] = nil
         order[:sale_items].first[:full_title] = nil
-        order[:sale_items].first[:product] = nil
         order
       end
       let(:importer_corrupted) { described_class.new(parsed_order_corrupted) }
@@ -299,7 +297,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           variant_title: "Limited Variant",
           variant_store_id: nil,
           product_store_id: nil,
-          product: nil,
           full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
         )
         order
@@ -399,7 +396,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           variant_title: "Limited Variant",
           variant_store_id: nil,
           product_store_id: "gid://shopify/Product/title-rebuilt",
-          product: nil,
           full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
         )
         order
@@ -408,7 +404,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       before do
         allow(Shopify::PullVariantsJob).to receive(:perform_later)
         allow(Shopify::ImportMediaJob).to receive(:perform_later)
-        allow(Shopify::PullProductJob).to receive(:perform_later)
         allow(Product::Shopify::Importer).to receive(:import).and_call_original
       end
 
@@ -420,10 +415,11 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(sale_item.product.shopify_info.store_id).to eq("gid://shopify/Product/title-rebuilt")
       end
 
-      it "enqueues a full Shopify product pull for the missing local product" do
+      it "fetches the product once and enqueues no product pull when Shopify no longer returns it" do
         described_class.import(parsed_order_with_store_id_and_title_only)
 
-        expect(Shopify::PullProductJob).to have_received(:perform_later).with("gid://shopify/Product/title-rebuilt")
+        expect(api_client).to have_received(:fetch_product).with("gid://shopify/Product/title-rebuilt").once
+        expect(Shopify::PullProductJob).not_to have_received(:perform_later)
       end
     end
 
@@ -432,7 +428,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         order = valid_parsed_order.deep_dup
         order[:sale_items].first.merge!(
           product_store_id: "gid://shopify/Product/missing-product",
-          product: nil,
           full_title: nil
         )
         order
@@ -458,15 +453,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           variant_title: "New Variant",
           variant_store_id: nil,
           product_store_id: "gid://shopify/Product/999999",
-          variant_title_from_product: "Regular",
-          product: {
-            store_id: "gid://shopify/Product/999999",
-            title: "Test Product",
-            franchise: "Test Franchise",
-            shape: "Statue",
-            sku: "test-product-999",
-            variants: []
-          }
+          variant_title_from_product: "Regular"
         )
         order
       end
@@ -493,15 +480,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           variant_title: "1:4 | New Variant | Red",
           variant_store_id: nil,
           product_store_id: "gid://shopify/Product/888888",
-          variant_title_from_product: "Regular",
-          product: {
-            store_id: "gid://shopify/Product/888888",
-            title: "Test Product",
-            franchise: "Test Franchise",
-            shape: "Statue",
-            sku: "test-product-888",
-            variants: []
-          }
+          variant_title_from_product: "Regular"
         )
         order
       end
@@ -521,40 +500,40 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
     end
 
-    context "when variant creation fails" do
-      let(:parsed_order_with_invalid_variant) do
+    context "when a sale item cannot be saved" do
+      let(:product) { create(:product, :synced, shopify_id: "gid://shopify/Product/67890") }
+      let(:parsed_order_with_invalid_item) do
         order = valid_parsed_order.deep_dup
         order[:sale_items].first.merge!(
-          variant_title: "Invalid Variant",
-          variant_store_id: "gid://shopify/ProductVariant/12345",
-          product_store_id: "gid://shopify/Product/67890",
-          product: {
-            title: "Test Product",
-            variants: [{
-              id: "gid://shopify/ProductVariant/12345",
-              title: "Invalid Variant"
-            }]
-          }
+          variant_title: nil,
+          variant_store_id: nil,
+          product_store_id: product.shopify_info.store_id,
+          full_title: nil
         )
         order
       end
-      let(:importer_with_invalid_variant) { described_class.new(parsed_order_with_invalid_variant) }
-      let(:product) { create(:product) }
 
-      before do
-        allow(Product::Shopify::Importer).to receive(:import).and_return(product)
-        allow(Variant::Shopify::Importer).to receive(:import).and_raise(ActiveRecord::RecordInvalid.new(Variant.new))
+      before { create(:variant, :with_version, product:) }
+
+      it "leaves the order's import failure unresolved when the import rolls back" do
+        store_order_id = "gid://shopify/Order/failed"
+        order = parsed_order_with_invalid_item.deep_dup
+        order[:store_info] = order[:store_info].merge(store_id: store_order_id)
+        Sale::ImportFailure.record(store_name: "shopify", store_order_id:, message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+        expect { described_class.import(order) }.to raise_error(described_class::Error, /Variant must be selected/)
+
+        expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id:).resolved_at).to be_nil
       end
 
-      it "rolls back all changes when variant creation fails" do
-        expect { described_class.import(parsed_order_with_invalid_variant) }.to raise_error(Sale::Shopify::Importer::Error)
+      it "rolls back the sale and its customer" do
         expect {
           begin
-            described_class.import(parsed_order_with_invalid_variant)
-          rescue
+            described_class.import(parsed_order_with_invalid_item)
+          rescue described_class::Error
             nil
           end
-        }.not_to change(Variant, :count)
+        }.not_to change { [Sale.count, Customer.count, SaleItem.count] }
       end
     end
 
@@ -688,6 +667,26 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         )
       end
 
+      it "imports a line whose Shopify variant is not linked on a product with real variants and allocates its revenue" do
+        line = parsed_order_with_revenue[:sale_items].first
+        product = create(:product, :synced, shopify_id: line[:product_store_id])
+        create(:variant, :with_version, product:)
+
+        expect { described_class.import(parsed_order_with_revenue) }.to change(SaleItem, :count).by(1)
+
+        expect(SaleItem.sole).to have_attributes(
+          variant: product.variants.base_models.first,
+          shopify_variant_id: line[:variant_store_id],
+          expected_revenue: BigDecimal("234.63"),
+          received_revenue: BigDecimal("100.00"),
+          outstanding_revenue: BigDecimal("134.63"),
+          refunded_revenue: BigDecimal(0)
+        )
+        expect(Sale.last).to be_shopify_variant_unlinked
+        expect(Sale.last.sales_tags).to be_empty
+        expect(SalesTag.count).to eq(0)
+      end
+
       it "allocates order revenue proportionally across multiple line items" do
         order = parsed_order_with_revenue.deep_dup
         order[:sale].merge!(
@@ -705,14 +704,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           variant_title: nil,
           product_store_id: "gid://shopify/Product/second-product",
           full_title: "Halo - Master Chief | 1:4 Resin Statue",
-          expected_revenue: "200.00",
-          product: {
-            store_id: "gid://shopify/Product/second-product",
-            title: "Master Chief",
-            franchise: "Halo",
-            shape: "Statue",
-            variants: []
-          }
+          expected_revenue: "200.00"
         )
         order[:sale_items] << second_item
 
@@ -740,6 +732,36 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           refunded_revenue: nil
         )
         expect(SaleItem.last).to have_attributes(received_revenue: nil, outstanding_revenue: nil)
+      end
+    end
+
+    context "when the sale holds a saved item without a variant" do
+      let(:store_order_id) { "gid://shopify/Order/nil-variant" }
+      let(:existing_sale) { create(:sale, shopify_store_id: store_order_id) }
+      let(:product) { create(:product) }
+      let!(:saved_item) { create(:sale_item, sale: existing_sale, product:, expected_revenue: BigDecimal(100)) }
+      let(:order) do
+        valid_parsed_order.deep_dup.tap do |parsed_order|
+          parsed_order[:store_info] = parsed_order[:store_info].merge(store_id: store_order_id)
+          parsed_order[:sale].merge!(
+            expected_revenue: "100.00",
+            received_revenue: "100.00",
+            outstanding_revenue: "0.00",
+            refunded_revenue: "0.00"
+          )
+          parsed_order[:sale_items] = []
+        end
+      end
+
+      before do
+        create(:variant, product:)
+        saved_item.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+      end
+
+      it "imports the order and allocates the item's revenue without choosing a variant" do
+        import_order(order)
+
+        expect(saved_item.reload).to have_attributes(received_revenue: BigDecimal(100), variant_id: nil)
       end
     end
 
@@ -786,6 +808,319 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect { import_order(order_with_email) }.to have_enqueued_job(OutboundEmailDeliveryJob).at_least(:once)
 
         expect(OutboundEmail.where(source: "link", state: "pending", recipient: "jimmy@example.com", purchase_item_id: purchase_items.map(&:id))).to be_present
+      end
+    end
+
+    context "when a line references a product or variant that is not cached locally" do
+      let(:product_store_id) { "gid://shopify/Product/9118444224841" }
+      let(:variant_store_id) { "gid://shopify/ProductVariant/50195649364297" }
+      let(:other_variant_store_id) { "gid://shopify/ProductVariant/50195649397065" }
+      let(:shopify_product) do
+        {
+          "id" => product_store_id,
+          "title" => "Star Wars - Princess Leia | 1:4 Resin Statue | by von xionart",
+          "handle" => "star-wars-princess-leia",
+          "tags" => [],
+          "createdAt" => "2025-01-01T00:00:00Z",
+          "updatedAt" => "2025-01-02T00:00:00Z",
+          "media" => {"nodes" => [{"id" => "gid://shopify/MediaImage/1", "alt" => "Front", "image" => {"url" => "https://cdn.shopify.com/leia.jpg"}}]},
+          "variants" => {
+            "edges" => [
+              {"node" => {"id" => variant_store_id, "title" => "Big Chest", "sku" => "leia-big", "selectedOptions" => [{"name" => "Version", "value" => "Big Chest"}]}},
+              {"node" => {"id" => other_variant_store_id, "title" => "Normal Chest", "sku" => "leia-normal", "selectedOptions" => [{"name" => "Version", "value" => "Normal Chest"}]}}
+            ]
+          }
+        }
+      end
+      let(:single_variant_product) do
+        shopify_product.merge(
+          "variants" => {"edges" => [{"node" => {"id" => variant_store_id, "title" => "Default Title", "sku" => "leia-only", "selectedOptions" => [{"name" => "Title", "value" => "Default Title"}]}}]}
+        )
+      end
+      let(:order) do
+        valid_parsed_order.deep_dup.tap do |parsed_order|
+          parsed_order[:store_info] = parsed_order[:store_info].merge(store_id: "gid://shopify/Order/uncached")
+          parsed_order[:sale_items] = [line("gid://shopify/LineItem/uncached-1", variant_store_id:, variant_title: "Big Chest")]
+        end
+      end
+
+      def line(store_id, variant_store_id:, variant_title:, product_store_id: self.product_store_id)
+        {
+          store_id:,
+          qty: 1,
+          price: "159.41",
+          expected_revenue: "159.41",
+          product_store_id:,
+          variant_store_id:,
+          variant_title:,
+          full_title: "Star Wars - Princess Leia | 1:4 Resin Statue | von xionart"
+        }
+      end
+
+      before do
+        allow(Product::Shopify::Importer).to receive(:import).and_call_original
+        allow(Shopify::PullVariantsJob).to receive(:perform_later)
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
+        allow(api_client).to receive(:fetch_product).with(product_store_id).and_return(shopify_product)
+      end
+
+      it "imports the product and its variants before the sale items, so the first pass saves the line on its own variant" do
+        import_order(order)
+
+        sale_item = SaleItem.sole
+        expect(sale_item.product.shopify_info.store_id).to eq(product_store_id)
+        expect(sale_item.variant.shopify_info.store_id).to eq(variant_store_id)
+        expect(sale_item.variant.version.value).to eq("Big Chest")
+        expect(Variant.find_by_shopify_id(other_variant_store_id)).to be_present
+      end
+
+      it "leaves the product's variants out of the queue and its media queued" do
+        import_order(order)
+
+        product = Product.find_by_shopify_id(product_store_id)
+        expect(Shopify::PullVariantsJob).not_to have_received(:perform_later)
+        expect(Shopify::ImportMediaJob).to have_received(:perform_later)
+          .with(product, [hash_including(id: "gid://shopify/MediaImage/1", url: "https://cdn.shopify.com/leia.jpg")], force: false)
+      end
+
+      it "never enqueues a product pull" do
+        import_order(order)
+
+        expect(Shopify::PullProductJob).not_to have_received(:perform_later)
+      end
+
+      it "fetches a product once when several lines reference it" do
+        two_lines = order.deep_dup
+        two_lines[:sale_items] = [
+          line("gid://shopify/LineItem/uncached-1", variant_store_id:, variant_title: "Big Chest"),
+          line("gid://shopify/LineItem/uncached-2", variant_store_id: other_variant_store_id, variant_title: "Normal Chest"),
+          line("gid://shopify/LineItem/uncached-3", variant_store_id:, variant_title: "Big Chest")
+        ]
+
+        import_order(two_lines)
+
+        expect(api_client).to have_received(:fetch_product).once
+        expect(SaleItem.pluck(:shopify_id)).to contain_exactly(
+          "gid://shopify/LineItem/uncached-1", "gid://shopify/LineItem/uncached-2", "gid://shopify/LineItem/uncached-3"
+        )
+      end
+
+      it "fetches each distinct missing product once" do
+        second_product_store_id = "gid://shopify/Product/second"
+        two_products = order.deep_dup
+        two_products[:sale_items] = [
+          line("gid://shopify/LineItem/uncached-1", variant_store_id:, variant_title: "Big Chest"),
+          line("gid://shopify/LineItem/uncached-2", variant_store_id: nil, variant_title: nil, product_store_id: second_product_store_id)
+        ]
+
+        import_order(two_products)
+
+        expect(api_client).to have_received(:fetch_product).with(product_store_id).once
+        expect(api_client).to have_received(:fetch_product).with(second_product_store_id).once
+      end
+
+      it "fetches nothing when the line's product and variant are cached" do
+        product = create(:product, :synced, shopify_id: product_store_id)
+        create(:variant, :synced, product:, shopify_id: variant_store_id)
+
+        import_order(order)
+
+        expect(Shopify::Api::Client).not_to have_received(:new)
+        expect(SaleItem.sole.variant.shopify_info.store_id).to eq(variant_store_id)
+      end
+
+      it "fetches a cached product when the line's variant is not cached" do
+        create(:product, :synced, shopify_id: product_store_id)
+
+        import_order(order)
+
+        expect(api_client).to have_received(:fetch_product).with(product_store_id).once
+        expect(SaleItem.sole.variant.shopify_info.store_id).to eq(variant_store_id)
+      end
+
+      it "fetches a cached product again when it was pulled before the order's last update" do
+        create(:product, :synced, shopify_id: product_store_id).shopify_info.update!(pull_time: Time.zone.parse("2025-04-01"))
+
+        import_order(order)
+
+        expect(api_client).to have_received(:fetch_product).with(product_store_id).once
+        expect(SaleItem.sole.variant.shopify_info.store_id).to eq(variant_store_id)
+      end
+
+      it "does not fetch a cached product again when it was pulled after the order's last update" do
+        product = create(:product, :synced, shopify_id: product_store_id)
+        product.shopify_info.update!(pull_time: Time.zone.parse("2025-06-01"))
+
+        import_order(order)
+
+        expect(Shopify::Api::Client).not_to have_received(:new)
+        expect(SaleItem.sole.variant).to eq(product.base_variant)
+      end
+
+      it "fetches a missing product again however recently a cached product was pulled" do
+        create(:product, :synced, shopify_id: "gid://shopify/Product/other").shopify_info.update!(pull_time: Time.zone.parse("2025-06-01"))
+
+        import_order(order)
+
+        expect(api_client).to have_received(:fetch_product).with(product_store_id).once
+      end
+
+      it "looks the cached products and variants up once per order, however many lines it has" do
+        product = create(:product, :synced, shopify_id: product_store_id)
+        variant_store_ids = Array.new(4) { |index| "gid://shopify/ProductVariant/cached-#{index}" }
+        variant_store_ids.each { |store_id| create(:variant, :synced, :with_version, product:, shopify_id: store_id) }
+        lines_for = lambda do |store_ids|
+          store_ids.each_with_index.map { |store_id, index| line("gid://shopify/LineItem/cached-#{index}", variant_store_id: store_id, variant_title: "Cached") }
+        end
+        count_store_id_lookups = lambda do |parsed_order|
+          lookups = 0
+          subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+            lookups += 1 if payload[:sql].start_with?("SELECT") && payload[:sql].include?('"store_infos"."store_id"')
+          end
+          begin
+            import_order(parsed_order)
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscriber)
+          end
+          lookups
+        end
+
+        one_line = order.deep_dup.merge(sale_items: lines_for.call(variant_store_ids.first(1)))
+        four_lines = order.deep_dup.tap do |parsed_order|
+          parsed_order[:store_info] = parsed_order[:store_info].merge(store_id: "gid://shopify/Order/four-lines")
+          parsed_order[:sale_items] = lines_for.call(variant_store_ids)
+        end
+
+        expect(count_store_id_lookups.call(four_lines)).to eq(count_store_id_lookups.call(one_line))
+        expect(SaleItem.count).to eq(4)
+      end
+
+      it "fetches a product when its line has no variant" do
+        allow(api_client).to receive(:fetch_product).with(product_store_id).and_return(single_variant_product)
+        product_only = order.deep_dup
+        product_only[:sale_items] = [line("gid://shopify/LineItem/uncached-1", variant_store_id: nil, variant_title: nil)]
+
+        import_order(product_only)
+
+        expect(api_client).to have_received(:fetch_product).with(product_store_id).once
+        expect(SaleItem.sole.product.shopify_info.store_id).to eq(product_store_id)
+      end
+
+      it "fetches nothing for a line without a Shopify product" do
+        title_only = order.deep_dup
+        title_only[:sale_items] = [line("gid://shopify/LineItem/uncached-1", variant_store_id: nil, variant_title: nil, product_store_id: nil)]
+
+        import_order(title_only)
+
+        expect(Shopify::Api::Client).not_to have_received(:new)
+      end
+
+      it "saves the line on the product's base variant when the fetched product does not carry its variant" do
+        orphan_line = order.deep_dup
+        orphan_line[:sale_items] = [line("gid://shopify/LineItem/uncached-1", variant_store_id: "gid://shopify/ProductVariant/gone", variant_title: "Gone")]
+        allow(api_client).to receive(:fetch_product).with(product_store_id).and_return(single_variant_product)
+
+        import_order(orphan_line)
+
+        sale_item = SaleItem.sole
+        expect(sale_item.variant).to eq(sale_item.product.base_variant)
+        expect(sale_item.variant).to be_base_model
+      end
+
+      it "creates the same placeholder as before when Shopify no longer returns the product" do
+        allow(api_client).to receive(:fetch_product).with(product_store_id).and_return(nil)
+        placeholder_line = order.deep_dup
+        placeholder_line[:sale_items] = [line("gid://shopify/LineItem/uncached-1", variant_store_id: nil, variant_title: nil).merge(full_title: nil)]
+
+        expect { import_order(placeholder_line) }.to change(SaleItem, :count).by(1).and change(Product, :count).by(1)
+
+        product = SaleItem.sole.product
+        expect(product.shopify_info.store_id).to eq(product_store_id)
+        expect(product.title).to include("[BROKEN SHOPIFY PRODUCT]")
+        expect(Shopify::PullProductJob).not_to have_received(:perform_later)
+      end
+
+      it "creates the same title-only product as before when Shopify no longer returns the product" do
+        allow(api_client).to receive(:fetch_product).with(product_store_id).and_return(nil)
+
+        import_order(order)
+
+        product = SaleItem.sole.product
+        expect(product.shopify_info.store_id).to eq(product_store_id)
+        expect(product.title).to eq("Princess Leia")
+        expect(Shopify::PullProductJob).not_to have_received(:perform_later)
+      end
+
+      it "fetches and imports outside the sale transaction" do
+        baseline = ActiveRecord::Base.connection.open_transactions
+        depths = {}
+        allow(api_client).to receive(:fetch_product) do
+          depths[:fetch] = ActiveRecord::Base.connection.open_transactions
+          shopify_product
+        end
+        allow(Product::Shopify::Importer).to receive(:import).and_wrap_original do |original, *args, **options|
+          depths[:product_import] = ActiveRecord::Base.connection.open_transactions
+          original.call(*args, **options)
+        end
+        allow(Variant::Shopify::Importer).to receive(:import_all).and_wrap_original do |original, *args|
+          depths[:variants_import] = ActiveRecord::Base.connection.open_transactions
+          original.call(*args)
+        end
+
+        import_order(order)
+
+        expect(depths).to eq(fetch: baseline, product_import: baseline, variants_import: baseline)
+      end
+
+      it "fails only that order when Shopify rejects the product query" do
+        allow(api_client).to receive(:fetch_product).and_raise(Shopify::Api::Client::ApiError, "Failed to fetch product: Access denied")
+
+        expect { import_order(order) }.to raise_error(described_class::Error) { |error|
+          expect(error.message).to start_with("Failed to import product #{product_store_id}: Failed to fetch product: Access denied\n")
+          expect(error.message).to include("sale_store_id: gid://shopify/Order/uncached")
+        }
+
+        expect(Sale.count).to eq(0)
+      end
+
+      it "fails only that order when the fetched product does not import" do
+        allow(Product::Shopify::Importer).to receive(:import).and_raise(Product::Shopify::Importer::Error, "Failed to process Product: Title can't be blank")
+
+        expect { import_order(order) }.to raise_error(
+          described_class::Error,
+          /\AFailed to import product #{product_store_id}: Failed to process Product: Title can't be blank\n/
+        )
+
+        expect(Sale.count).to eq(0)
+      end
+
+      it "fails only that order when the fetched product's variants do not import" do
+        allow(Variant::Shopify::Importer).to receive(:import).and_raise(ActiveRecord::RecordInvalid.new(Variant.new))
+
+        expect { import_order(order) }.to raise_error(
+          described_class::Error,
+          /\AFailed to import product #{product_store_id}: .*product_shopify_id: #{product_store_id}/m
+        )
+
+        expect(Sale.count).to eq(0)
+      end
+
+      it "leaves the order's import failure unresolved when the fetch fails" do
+        store_order_id = "gid://shopify/Order/uncached"
+        Sale::ImportFailure.record(store_name: "shopify", store_order_id:, message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+        allow(api_client).to receive(:fetch_product).and_raise(Shopify::Api::Client::ApiError, "Failed to fetch product")
+
+        expect { import_order(order) }.to raise_error(described_class::Error)
+
+        expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id:).resolved_at).to be_nil
+      end
+
+      it "re-raises a throttled fetch so the job retries instead of failing the order" do
+        allow(api_client).to receive(:fetch_product).and_raise(Shopify::Api::Client::Throttled, "Shopify throttled product")
+
+        expect { import_order(order) }.to raise_error(Shopify::Api::Client::Throttled)
+
+        expect(Sale.count).to eq(0)
       end
     end
   end

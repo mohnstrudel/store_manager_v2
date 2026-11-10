@@ -1,29 +1,10 @@
 # frozen_string_literal: true
 
 class Sale::Woo::Importer
-  attr_reader :parsed_order, :pulled_at, :sale
-  private :parsed_order, :pulled_at, :sale
+  class Error < StandardError; end
 
-  def self.import_all(parsed_orders)
-    current_order = nil
-    pulled_at = Time.zone.now
-
-    parsed_orders.each do |order|
-      current_order = order
-      import(order, pulled_at:)
-    end
-  rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error "!!! Validation error for order #{current_order&.dig(:sale, :woo_id)}: #{e.message}"
-    Rails.logger.error "!!! Failed record: #{e.record&.attributes}"
-    raise
-  rescue ActiveRecord::StatementInvalid => e
-    Rails.logger.error "!!! Database error for order #{current_order&.dig(:sale, :woo_id)}: #{e.message}"
-    raise
-  rescue => e
-    Rails.logger.error "!!! Unexpected error for order #{current_order&.dig(:sale, :woo_id)}: #{e.class} - #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-    raise
-  end
+  attr_reader :parsed_order, :pulled_at, :sale, :skipped_items
+  private :parsed_order, :pulled_at, :sale, :skipped_items
 
   def self.import(parsed_order, pulled_at: Time.zone.now)
     new(parsed_order, pulled_at).import
@@ -32,6 +13,7 @@ class Sale::Woo::Importer
   def initialize(parsed_order, pulled_at)
     @parsed_order = parsed_order
     @pulled_at = pulled_at
+    @skipped_items = []
   end
 
   def import
@@ -39,6 +21,7 @@ class Sale::Woo::Importer
       upsert_sale
       parsed_order[:products].each { |parsed_item| import_sale_item(parsed_item) }
       sale.allocate_revenue_to_items
+      settle_import_failure
       sale
     end
   end
@@ -63,11 +46,12 @@ class Sale::Woo::Importer
   def import_sale_item(parsed_item)
     product = find_or_fetch_product(parsed_item[:product_woo_id])
 
-    return if product.blank?
+    if product.blank?
+      skipped_items << parsed_item
+      return
+    end
 
     product.with_lock do
-      variant = Variant::Woo::Importer.import(parsed_item[:variant])
-
       sale_item = SaleItem.find_by_woo_id(parsed_item[:sale_item_woo_id]) || SaleItem.new
 
       sale_item.assign_attributes({
@@ -76,15 +60,15 @@ class Sale::Woo::Importer
         product:,
         qty: parsed_item[:qty],
         sale:,
-        variant:
+        variant: line_variant(sale_item, parsed_item[:variant])
       }.compact)
 
-      unless sale_item.save!
-        Rails.logger.error "!!! Failed to save SaleItem: #{sale_item.errors.full_messages.join(", ")}"
-      end
-
+      sale_item.keep_missing_variant = true
+      sale_item.save!
       sale_item.upsert_woo_info(store_id: parsed_item[:sale_item_woo_id], pull_time: pulled_at) if parsed_item[:sale_item_woo_id].present?
     end
+  rescue ActiveRecord::RecordInvalid => error
+    raise Error, line_error_message(parsed_item, error)
   end
 
   def find_or_fetch_product(woo_id)
@@ -93,5 +77,38 @@ class Sale::Woo::Importer
 
     Product::Woo::Importer.fetch_and_import(woo_id)
     Product.find_by_woo_id(woo_id)
+  end
+
+  def line_variant(sale_item, parsed_variant)
+    variant = Variant::Woo::Importer.import(parsed_variant)
+    return variant if parsed_variant&.dig(:options).present?
+
+    sale_item.variant || variant
+  end
+
+  def line_error_message(parsed_item, error)
+    "#{line_label(parsed_item)}: #{record_label(error.record)}: #{error.message}"
+  end
+
+  def line_label(parsed_item)
+    "Woo line #{parsed_item[:sale_item_woo_id]} (Woo product #{parsed_item[:product_woo_id]})"
+  end
+
+  def record_label(record)
+    record.persisted? ? "#{record.class.name} ##{record.id}" : record.class.name
+  end
+
+  def settle_import_failure
+    store_order_id = parsed_order[:sale][:woo_id]
+
+    if skipped_items.empty?
+      Sale::ImportFailure.resolve(store_name: "woo", store_order_id:)
+    else
+      Sale::ImportFailure.record(store_name: "woo", store_order_id:, message: skipped_items_message, sentry_event_id: nil, failed_at: pulled_at)
+    end
+  end
+
+  def skipped_items_message
+    skipped_items.map { |parsed_item| "#{line_label(parsed_item)}: product not found" }.join("; ")
   end
 end

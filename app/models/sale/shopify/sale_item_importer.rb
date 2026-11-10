@@ -1,39 +1,38 @@
 # frozen_string_literal: true
 
 class Sale::Shopify::SaleItemImporter
-  attr_reader :sale_item, :sale, :parsed
-  private :sale_item, :sale, :parsed
+  attr_reader :sale_item, :sale, :parsed, :catalog
+  private :sale_item, :sale, :parsed, :catalog
 
-  def initialize(sale, parsed_sale_item)
+  def initialize(sale, parsed_sale_item, catalog: Sale::Shopify::Catalog.new([parsed_sale_item]))
     @sale = sale
     @parsed = parsed_sale_item
+    @catalog = catalog
   end
 
   def import
     return if no_product_data?
 
     find_or_initialize_sale_item
-    missing_product_reference =
-      parsed[:product_store_id].present? && Product.find_by_shopify_id(parsed[:product_store_id]).nil?
-
     return create_title_only_sale_item if only_product_title?
-    return if unresolvable_new_variant?
 
     ActiveRecord::Base.transaction do
       sale_item.assign_attributes(sale_item_attributes)
+      sale_item.skip_variant_assignability_check = shopify_variant_line?
       sale_item.save!
     end
 
-    Shopify::PullProductJob.perform_later(parsed[:product_store_id]) if missing_product_reference
     sale_item
   rescue ActiveRecord::RecordInvalid => e
     handle_record_invalid(e)
+  rescue Product::Shopify::Importer::Error => e
+    raise Sale::Shopify::Importer::Error, "#{e.message}\n#{context_details}"
   end
 
   private
 
   def no_product_data?
-    parsed[:product_store_id].blank? && parsed[:product].blank? && parsed[:full_title].blank?
+    parsed[:product_store_id].blank? && parsed[:full_title].blank?
   end
 
   def find_or_initialize_sale_item
@@ -57,22 +56,13 @@ class Sale::Shopify::SaleItemImporter
   end
 
   def default_resolved_product
-    existing_product_from_store_id ||
-      product_from_payload ||
-      product_from_full_title ||
-      placeholder_product
+    existing_product_from_store_id || product_from_full_title || placeholder_product
   end
 
   def existing_product_from_store_id
     return nil if parsed[:product_store_id].blank?
 
-    Product.find_by_shopify_id(parsed[:product_store_id])
-  end
-
-  def product_from_payload
-    return nil if parsed[:product].blank?
-
-    Product::Shopify::Importer.import(parsed[:product])
+    catalog.product(parsed[:product_store_id])
   end
 
   def product_from_full_title
@@ -96,8 +86,8 @@ class Sale::Shopify::SaleItemImporter
     return @imported_variant if defined?(@imported_variant)
 
     @imported_variant =
-      if parsed[:variant_store_id].present?
-        find_or_create_variant_from_shopify
+      if shopify_variant_line?
+        catalog.variant(parsed[:variant_store_id]) || base_model_variant_for(resolved_product)
       elsif normalized_variant_title.blank? && !base_model_variant_title?
         nil
       else
@@ -105,17 +95,16 @@ class Sale::Shopify::SaleItemImporter
       end
   end
 
-  def find_or_create_variant_from_shopify
-    existing_variant = Variant.find_by_shopify_id(parsed[:variant_store_id])
-    return existing_variant if existing_variant
-    return nil if parsed.dig(:product, :variants).blank?
+  def shopify_variant_line?
+    parsed[:variant_store_id].present?
+  end
 
-    parsed_variants = parsed[:product][:variants]
-    sibling_store_ids = parsed_variants.pluck(:store_id)
-    parsed_variants
-      .map { |parsed_variant| Variant::Shopify::Importer.import(resolved_product, parsed_variant, sibling_store_ids:) }
-      .compact
-      .find { |variant| variant.shopify_info&.store_id == parsed[:variant_store_id] }
+  def base_model_variant_for(product)
+    return product.base_variant if product.base_variant
+
+    product.build_base_variant
+    product.save!
+    product.base_variant
   end
 
   def normalized_variant_title
@@ -149,14 +138,6 @@ class Sale::Shopify::SaleItemImporter
     )
   end
 
-  def base_model_variant_for(product)
-    return product.base_variant if product.base_variant
-
-    product.build_base_variant
-    product.save!
-    product.base_variant
-  end
-
   def sale_item_attributes
     {
       price: parsed[:price],
@@ -166,24 +147,18 @@ class Sale::Shopify::SaleItemImporter
       sale: sale,
       product: resolved_product,
       variant: imported_variant
-    }.compact
-  end
-
-  def unresolvable_new_variant?
-    return false if parsed[:variant_store_id].blank?
-    return false if Variant.find_by_shopify_id(parsed[:variant_store_id])
-    return false if parsed.dig(:product, :variants).present?
-    return false if resolved_product.blank?
-    return false if resolved_product.assignable_variants.base_models.exists?
-
-    Shopify::PullProductJob.perform_later(parsed[:product_store_id]) if parsed[:product_store_id].present?
-    true
+    }.compact.merge(shopify_variant_id: parsed[:variant_store_id])
   end
 
   def handle_record_invalid(error)
     model_name = error.record.class.name
     detailed_errors = error.record.errors.full_messages.join(", ")
-    context_details = [
+
+    raise Sale::Shopify::Importer::Error, "Failed to process #{model_name}: #{detailed_errors}\n#{context_details}"
+  end
+
+  def context_details
+    [
       "sale_store_id: #{sale.shopify_info&.store_id || sale.shopify_id}",
       "sale_item_store_id: #{parsed[:store_id]}",
       "product_store_id: #{parsed[:product_store_id]}",
@@ -191,7 +166,5 @@ class Sale::Shopify::SaleItemImporter
       "variant_title: #{parsed[:variant_title].presence || "blank"}",
       "full_title: #{parsed[:full_title].presence || "blank"}"
     ].join(", ")
-
-    raise Sale::Shopify::Importer::Error, "Failed to process #{model_name}: #{detailed_errors}\n#{context_details}"
   end
 end

@@ -129,7 +129,7 @@ module Shopify
           zip
           phone
         }
-        lineItems(first: 10) {
+        lineItems(first: 50) {
           pageInfo {
             hasNextPage
           }
@@ -171,14 +171,13 @@ module Shopify
         GQL
       end
 
-      def self.list
+      def self.list(updated_since: nil)
         <<~GQL
           query($first: Int!, $after: String) {
             orders(
               first: $first,
               after: $after,
-              sortKey: CREATED_AT,
-              reverse: true
+              #{Shopify::Graphql::ListArguments.for(updated_since:)}
             ) {
               pageInfo {
                 hasNextPage

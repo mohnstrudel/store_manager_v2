@@ -14,6 +14,7 @@
 #  updated_at      :datetime         not null
 #
 class User < ApplicationRecord
+  include Notifiable
   include Roles
 
   enum :role, {guest: 0, admin: 1, manager: 2, support: 3}

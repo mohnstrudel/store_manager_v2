@@ -26,7 +26,7 @@ RSpec.describe "Passwords" do
 
       follow_redirect!
 
-      expect(inertia.props[:flash][:notice]).to eq(
+      expect(inertia.flash[:notice]).to eq(
         "Password reset instructions sent (if user with that email address exists)"
       )
     end
@@ -69,7 +69,7 @@ RSpec.describe "Passwords" do
 
       follow_redirect!
 
-      expect(inertia.props[:flash][:alert]).to eq("Password reset link is invalid or has expired")
+      expect(inertia.flash[:alert]).to eq("Password reset link is invalid or has expired")
     end
   end
 
@@ -84,7 +84,7 @@ RSpec.describe "Passwords" do
 
       follow_redirect!
 
-      expect(inertia.props[:flash][:notice]).to eq("Password has been reset")
+      expect(inertia.flash[:notice]).to eq("Password has been reset")
     end
 
     it "redirects back with an alert when passwords do not match" do
@@ -97,7 +97,7 @@ RSpec.describe "Passwords" do
 
       follow_redirect!
 
-      expect(inertia.props[:flash][:alert]).to eq("Passwords did not match")
+      expect(inertia.flash[:alert]).to eq("Passwords did not match")
     end
 
     it "rejects a new password without its confirmation" do

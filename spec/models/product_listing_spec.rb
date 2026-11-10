@@ -55,20 +55,4 @@ RSpec.describe Product do
       end
     end
   end
-
-  describe ".with_media_and_shopify_info" do
-    it "eager loads the media attachments for syncing" do
-      product = create(:product)
-      create(:media, :for_product, mediaable: product)
-
-      relation = described_class.with_media_and_shopify_info.where(id: product.id).to_a
-
-      aggregate_failures do
-        expect(relation).to include(product)
-        expect(relation.first.association(:media).loaded?).to be true
-        expect(relation.first.media.first.association(:image_attachment).loaded?).to be true
-        expect(relation.first.media.first.association(:image_blob).loaded?).to be true
-      end
-    end
-  end
 end

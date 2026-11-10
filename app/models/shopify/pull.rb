@@ -2,26 +2,26 @@
 
 class Shopify::Pull
   Page = Data.define(:imported_count, :next_cursor, :failures)
-  Failure = Data.define(:store_id, :message)
+  Failure = Data.define(:store_id, :message, :failed_at)
 
   class Failed < StandardError
     REPORTED_FAILURES = 10
 
     attr_reader :failures
 
-    def initialize(failures)
+    def initialize(failures, total: failures.size)
       @failures = failures
       details = failures.first(REPORTED_FAILURES).map { |failure| "#{failure.store_id}: #{failure.message}" }
-      super("#{failures.size} Shopify item(s) failed to import: #{details.join("; ")}")
+      super("#{total} Shopify item(s) failed to import: #{details.join("; ")}")
     end
   end
 
-  def self.page(cursor: nil, limit: nil)
-    new.page(cursor:, limit:)
+  def self.page(cursor: nil, updated_since: nil)
+    new.page(cursor:, updated_since:)
   end
 
-  def page(cursor:, limit:)
-    payload = fetch(Shopify::Api::Client.new, cursor:, batch_size: Integer(limit || batch_size))
+  def page(cursor:, updated_since:)
+    payload = fetch(Shopify::Api::Client.new, cursor:, batch_size:, updated_since:)
     failures = []
     imported_count = payload[:items].count { |item| import(item, failures) }
 
@@ -30,7 +30,7 @@ class Shopify::Pull
 
   private
 
-  def fetch(api_client, cursor:, batch_size:)
+  def fetch(api_client, cursor:, batch_size:, updated_since:)
     raise NotImplementedError, "#{self.class} must implement #fetch"
   end
 
@@ -42,7 +42,7 @@ class Shopify::Pull
     importer_class.import(parser_class.parse(item))
     true
   rescue *skippable_errors => error
-    failures << Failure.new(store_id: item["id"], message: error.message)
+    failures << Failure.new(store_id: item["id"], message: error.message, failed_at: Time.current)
     false
   end
 

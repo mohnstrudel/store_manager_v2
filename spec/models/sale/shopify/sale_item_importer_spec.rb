@@ -55,46 +55,114 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         expect(sale_item.variant).to eq(variant)
         expect(sale_item.shopify_id).to eq("gid://shopify/LineItem/1")
       end
+
+      it "records the line's Shopify variant ID" do
+        result = described_class.new(sale, parsed_sale_item).import
+
+        expect(result.shopify_variant_id).to eq(variant_store_id)
+      end
     end
 
-    context "when the sale item includes parsed Shopify product data" do
+    context "when a re-imported line no longer carries a Shopify variant" do
+      let!(:saved_item) do
+        create(
+          :sale_item,
+          sale:,
+          product:,
+          shopify_id: "gid://shopify/LineItem/variant-removed",
+          shopify_variant_id: variant_store_id
+        )
+      end
       let(:parsed_sale_item) do
         {
-          store_id: "gid://shopify/LineItem/parsed",
+          store_id: "gid://shopify/LineItem/variant-removed",
+          price: "10.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          variant_title: "Default Title"
+        }
+      end
+
+      it "stores no Shopify variant ID" do
+        described_class.new(sale, parsed_sale_item).import
+
+        expect(saved_item.reload.shopify_variant_id).to be_nil
+      end
+    end
+
+    context "when the line's Shopify variant is not linked to a local variant" do
+      let(:unlinked_variant_store_id) { "gid://shopify/ProductVariant/50971387363657" }
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/unlinked",
+          price: "10.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          variant_store_id: unlinked_variant_store_id,
+          variant_title: "Gold"
+        }
+      end
+
+      before { product }
+
+      context "when the product has real variants" do
+        let(:base_variant) { product.variants.base_models.first }
+
+        before { create(:variant, :with_version, product:) }
+
+        it "saves the line on the product's deactivated base variant and records the Shopify variant ID" do
+          expect(base_variant).to be_deactivated
+
+          result = described_class.new(sale, parsed_sale_item).import
+
+          expect(result).to be_persisted
+          expect(result).to have_attributes(variant: base_variant, shopify_variant_id: unlinked_variant_store_id)
+        end
+
+        it "moves the line to the linked variant once the Shopify variant is linked" do
+          item = described_class.new(sale, parsed_sale_item).import
+          expect(item).to be_shopify_variant_unlinked
+          linked = create(:variant, product:, version: create(:version, value: "Gold"), shopify_store_id: unlinked_variant_store_id)
+
+          described_class.new(sale, parsed_sale_item).import
+
+          expect(item.reload).to have_attributes(variant: linked, shopify_variant_id: unlinked_variant_store_id)
+          expect(item).not_to be_shopify_variant_unlinked
+        end
+      end
+
+      context "when the product has no real variants" do
+        it "saves the line on the product's base variant and records the Shopify variant ID" do
+          result = described_class.new(sale, parsed_sale_item).import
+
+          expect(result).to have_attributes(variant: product.base_variant, shopify_variant_id: unlinked_variant_store_id)
+          expect(result.variant).to be_base_model
+        end
+      end
+    end
+
+    context "when the product built from the line's title does not import" do
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/invalid-product",
           price: "15.00",
           qty: 1,
           product_store_id: product_store_id,
-          product: {
-            store_id: product_store_id,
-            title: "Parsed Product",
-            franchise: "Parsed Franchise",
-            shape: "Statue",
-            sku: "parsed-sku-1",
-            variants: []
-          }
+          full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
         }
       end
-      let(:imported_product) { create(:product, title: "Parsed Product") }
 
       before do
-        allow(Product).to receive(:find_by_shopify_id).with(product_store_id).and_return(nil)
         allow(Product::Shopify::Importer).to receive(:import)
-          .with(parsed_sale_item[:product])
-          .and_return(imported_product)
-        allow(Shopify::PullProductJob).to receive(:perform_later)
+          .and_raise(Product::Shopify::Importer::Error, "Failed to process Product: Title can't be blank")
       end
 
-      it "imports the product payload before creating the sale item" do
-        result = described_class.new(sale, parsed_sale_item).import
-
-        expect(result).to be_persisted
-        expect(result.product).to eq(imported_product)
-      end
-
-      it "enqueues a canonical product pull for missing local Shopify products" do
-        described_class.new(sale, parsed_sale_item).import
-
-        expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
+      it "fails the sale import with the product's errors and the sale item's context" do
+        expect { described_class.new(sale, parsed_sale_item).import }
+          .to raise_error(Sale::Shopify::Importer::Error) { |error|
+            expect(error.message).to start_with("Failed to process Product: Title can't be blank\nsale_store_id: ")
+            expect(error.message).to include("sale_item_store_id: gid://shopify/LineItem/invalid-product", "product_store_id: #{product_store_id}")
+          }
       end
     end
 
@@ -127,7 +195,6 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         allow(Product::Shopify::Importer).to receive(:import)
           .with(parsed_product)
           .and_return(imported_product)
-        allow(Shopify::PullProductJob).to receive(:perform_later)
       end
 
       it "creates a product and custom variant from the title" do
@@ -139,12 +206,6 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         sale_item = SaleItem.last
         expect(sale_item.product).to eq(imported_product)
         expect(sale_item.variant.version.value).to eq("Limited Variant")
-      end
-
-      it "does not enqueue a product pull without a Shopify product id" do
-        described_class.new(sale, parsed_sale_item).import
-
-        expect(Shopify::PullProductJob).not_to have_received(:perform_later)
       end
     end
 
@@ -190,10 +251,10 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         expect(result.product).to eq(imported_product)
       end
 
-      it "enqueues a canonical product pull after rebuilding from title" do
+      it "enqueues no product pull after rebuilding from title" do
         described_class.new(sale, parsed_sale_item).import
 
-        expect(Shopify::PullProductJob).to have_received(:perform_later).with("gid://shopify/Product/999")
+        expect(Shopify::PullProductJob).not_to have_received(:perform_later)
       end
     end
 
@@ -352,52 +413,60 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
           .and change(Product, :count).by(1)
       end
 
-      it "enqueues a background pull for the missing Shopify product" do
+      it "enqueues no product pull for the missing Shopify product" do
         described_class.new(sale, parsed_sale_item).import
 
-        expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
+        expect(Shopify::PullProductJob).not_to have_received(:perform_later)
       end
     end
 
-    context "when the sale item references a new variant of an already-known multi-variant product" do
-      let!(:existing_real_variant) { create(:variant, :with_version, product:) }
+    context "when the Shopify variant resolves to a deactivated variant" do
+      let(:deactivated_variant) { product.variants.base_models.first }
       let(:parsed_sale_item) do
         {
-          store_id: "gid://shopify/LineItem/new-variant",
-          price: "40.00",
+          store_id: "gid://shopify/LineItem/deactivated",
+          price: "10.00",
           qty: 1,
           product_store_id: product_store_id,
-          product: nil,
           variant_store_id: variant_store_id,
-          variant_title: "New Size"
+          variant_title: "Default Title"
         }
       end
 
       before do
-        allow(Product).to receive(:find_by_shopify_id).with(product_store_id).and_return(product)
-        allow(Shopify::PullProductJob).to receive(:perform_later)
+        create(:variant, :with_version, product:)
+        deactivated_variant.upsert_shopify_info(store_id: variant_store_id)
       end
 
-      it "defers the sale item instead of failing variant validation" do
-        expect {
-          expect(described_class.new(sale, parsed_sale_item).import).to be_nil
-        }.not_to change(SaleItem, :count)
+      it "saves the line on that variant" do
+        expect(deactivated_variant).to be_deactivated
+
+        result = described_class.new(sale, parsed_sale_item).import
+
+        expect(result).to be_persisted
+        expect(result.variant).to eq(deactivated_variant)
+      end
+    end
+
+    context "when the line resolves to a deactivated variant by its title" do
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/by-title",
+          price: "10.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          variant_title: "Gold"
+        }
       end
 
-      it "enqueues a background product pull to backfill the missing variant" do
-        described_class.new(sale, parsed_sale_item).import
-
-        expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
+      before do
+        create(:variant, :with_version, product:)
+        create(:variant, product:, version: create(:version, value: "Gold")).deactivate
       end
 
-      it "still resolves once the variant is locally cached from that backfill" do
-        variant.shopify_info.update!(store_id: variant_store_id)
-
-        expect {
-          result = described_class.new(sale, parsed_sale_item).import
-          expect(result).to be_persisted
-          expect(result.variant).to eq(variant)
-        }.to change(SaleItem, :count).by(1)
+      it "still fails variant assignability validation" do
+        expect { described_class.new(sale, parsed_sale_item).import }
+          .to raise_error(Sale::Shopify::Importer::Error, /Variant is not assignable/)
       end
     end
 

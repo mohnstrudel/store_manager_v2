@@ -1,11 +1,12 @@
 import { Link } from "@inertiajs/react";
-import { PlusIcon, RefreshCwIcon, TagsIcon } from "lucide-react";
+import { BugIcon, PlusIcon, RefreshCwIcon, TagsIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import SyncModal from "@/components/SyncModal";
 import type { SalesIndex } from "@/types/serializers";
+import { countLabel } from "@/utils/countLabel";
 import routes from "@/utils/routes";
 import { useModalVisibility } from "@/utils/useModalVisibility";
 
@@ -24,6 +25,8 @@ export default function Index({
   tag_options,
   tag_colors,
   can_tag_sales,
+  can_view_broken_sales,
+  broken_problem_count,
   last_sync_time,
 }: IndexProps) {
   const { close: closeSync, isOpen: syncOpen, open: openSync } = useModalVisibility();
@@ -36,6 +39,23 @@ export default function Index({
   return (
     <>
       <PageHeader title="Sales">
+        {can_view_broken_sales && (
+          <li>
+            <Link
+              aria-label={brokenLinkLabel(broken_problem_count)}
+              className="relative"
+              href={routes.brokenSales.index.path()}
+            >
+              <BugIcon />
+              Broken
+              {broken_problem_count ? (
+                <span aria-hidden="true" className="nav_menu_badge">
+                  {badgeCount(broken_problem_count)}
+                </span>
+              ) : null}
+            </Link>
+          </li>
+        )}
         <li>
           <Link href={routes.salesTags.index.path()} prefetch>
             <TagsIcon />
@@ -58,7 +78,6 @@ export default function Index({
 
       {syncOpen && (
         <SyncModal
-          fetchLimitedLabel="Fetch Last 100 Sales"
           id="sales-index-sync-modal"
           lastSyncAt={lastSyncLabel}
           onClose={closeSync}
@@ -102,6 +121,16 @@ export default function Index({
       </section>
     </>
   );
+}
+
+function brokenLinkLabel(count: number | null) {
+  if (!count) return undefined;
+
+  return `Broken, ${countLabel(count, "problem")}`;
+}
+
+function badgeCount(count: number) {
+  return count > 99 ? "99+" : String(count);
 }
 
 function EmptyResults({ hasCriteria, seed }: { hasCriteria: boolean; seed: string }) {

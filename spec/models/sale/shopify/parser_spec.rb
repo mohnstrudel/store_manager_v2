@@ -5,18 +5,6 @@ require "rails_helper"
 RSpec.describe Sale::Shopify::Parser do
   before do
     create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.0000"))
-
-    allow(Product::Shopify::Parser).to receive(:parse).and_call_original
-    allow(Product::Shopify::Parser).to receive(:parse).with(
-      hash_including("id" => "gid://shopify/Product/333")
-    ).and_return(
-      {
-        store_id: "gid://shopify/Product/333",
-        title: "Eve",
-        franchise: "Stellar Blade",
-        variants: []
-      }
-    )
   end
 
   let(:api_order) do
@@ -87,11 +75,7 @@ RSpec.describe Sale::Shopify::Parser do
               }
             },
             "product" => {
-              "id" => "gid://shopify/Product/333",
-              "title" => "Stellar Blade - Eve | 1:4 Resin Statue | Light and Dust Studio",
-              "handle" => "stellar-blade-eve-statue",
-              "images" => {"edges" => []},
-              "variants" => {"edges" => []}
+              "id" => "gid://shopify/Product/333"
             }
           }
         ]
@@ -233,52 +217,13 @@ RSpec.describe Sale::Shopify::Parser do
         )
       end
 
-      it "handles missing product data" do
+      it "takes the product id from the variant when the line has no product" do
         order_without_product = api_order.deep_dup
         order_without_product["lineItems"]["nodes"].first["product"] = nil
 
         result = described_class.parse(order_without_product)
 
-        expect(result[:sale_items].first[:product]).to be_nil
-      end
-
-      it "parses product data correctly" do
-        allow(Product::Shopify::Parser).to receive(:parse).and_return(
-          {
-            store_id: "gid://shopify/Product/333",
-            title: "Eve",
-            franchise: "Stellar Blade",
-            variants: [{
-              id: "gid://shopify/ProductVariant/222",
-              title: "Regular"
-            }]
-          }
-        )
-
-        result = described_class.parse(api_order)
-
-        expect(result[:sale_items].first[:product]).to include(
-          store_id: "gid://shopify/Product/333",
-          title: "Eve",
-          franchise: "Stellar Blade"
-        )
-      end
-
-      it "stamps the known product_store_id onto parsed product payloads" do
-        allow(Product::Shopify::Parser).to receive(:parse).and_return(
-          {
-            title: "Eve",
-            franchise: "Stellar Blade",
-            variants: []
-          }
-        )
-
-        result = described_class.parse(api_order)
-
-        expect(result[:sale_items].first[:product]).to include(
-          store_id: "gid://shopify/Product/333",
-          title: "Eve"
-        )
+        expect(result[:sale_items].first).to include(product_store_id: "gid://shopify/Product/333")
       end
 
       it "handles missing customer data" do

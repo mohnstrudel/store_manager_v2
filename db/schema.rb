@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_27_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_09_220500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -339,6 +339,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_130000) do
     t.index ["sale_id"], name: "index_sale_addresses_on_sale_id"
   end
 
+  create_table "sale_import_failures", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "failure_count", default: 0, null: false
+    t.datetime "first_failed_at", null: false
+    t.datetime "last_failed_at", null: false
+    t.text "message", null: false
+    t.datetime "resolved_at"
+    t.bigint "sale_id"
+    t.string "sentry_event_id"
+    t.string "store_name", null: false
+    t.string "store_order_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["sale_id"], name: "index_sale_import_failures_on_sale_id"
+    t.index ["store_name", "store_order_id"], name: "index_sale_import_failures_on_store_name_and_store_order_id", unique: true
+  end
+
   create_table "sale_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.decimal "expected_revenue", precision: 8, scale: 2
@@ -352,6 +368,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_130000) do
     t.decimal "refunded_revenue", precision: 8, scale: 2
     t.bigint "sale_id", null: false
     t.string "shopify_id"
+    t.string "shopify_variant_id"
     t.datetime "updated_at", null: false
     t.bigint "variant_id"
     t.string "woo_id"
@@ -516,6 +533,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_130000) do
     t.datetime "pull_time", precision: nil
     t.datetime "push_time", precision: nil
     t.string "slug"
+    t.string "source_url"
     t.bigint "storable_id", null: false
     t.string "storable_type", null: false
     t.string "store_id"
@@ -679,6 +697,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_130000) do
   add_foreign_key "purchases", "suppliers"
   add_foreign_key "purchases", "variants"
   add_foreign_key "sale_addresses", "sales"
+  add_foreign_key "sale_import_failures", "sales", on_delete: :nullify
   add_foreign_key "sale_items", "products"
   add_foreign_key "sale_items", "sale_items", column: "origin_sale_item_id"
   add_foreign_key "sale_items", "sales"

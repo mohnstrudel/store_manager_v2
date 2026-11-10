@@ -2,8 +2,8 @@ import type { MouseEvent, ReactNode } from "react";
 
 import AppNavigation from "@/components/app-navigation/AppNavigation";
 import Breadcrumbs from "@/components/breadcrumbs/Breadcrumbs";
-import FlashMessages from "@/components/flash-messages/FlashMessages";
 import GrinningCatIcon from "@/components/GrinningCatIcon";
+import Notifications from "@/components/notifications/Notifications";
 import { useDocumentTitle } from "@/utils/useDocumentTitle";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex flex-col min-h-screen">
       <AppNavigation />
       <main className="flex flex-col flex-grow container mx-auto mt-4 mb-24 px-4 lg:mt-8 lg:mb-60 lg:px-0">
-        <FlashMessages />
+        <Notifications live />
         <Breadcrumbs />
         {children}
       </main>

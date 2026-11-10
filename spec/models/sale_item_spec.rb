@@ -18,6 +18,7 @@
 #  product_id           :bigint           not null
 #  sale_id              :bigint           not null
 #  shopify_id           :string
+#  shopify_variant_id   :string
 #  variant_id           :bigint
 #  woo_id               :string
 #
@@ -91,9 +92,64 @@ RSpec.describe SaleItem do
     end
   end
 
+  describe "Shopify variant link" do
+    let(:shopify_variant_id) { "gid://shopify/ProductVariant/50971387363657" }
+    let(:product) { create(:product) }
+
+    it "is unlinked when no local variant carries the line's Shopify variant" do
+      sale_item = create(:sale_item, product:, shopify_variant_id:)
+
+      expect(sale_item).to be_shopify_variant_unlinked
+      expect(described_class.shopify_variant_unlinked).to contain_exactly(sale_item)
+    end
+
+    it "is linked once a local variant carries the line's Shopify variant" do
+      sale_item = create(:sale_item, product:, shopify_variant_id:)
+      create(:variant, product:, shopify_store_id: shopify_variant_id)
+
+      expect(sale_item.reload).not_to be_shopify_variant_unlinked
+      expect(described_class.shopify_variant_unlinked).to be_empty
+    end
+
+    it "is unlinked when only a record that is not a variant carries the Shopify ID" do
+      sale_item = create(:sale_item, product:, shopify_variant_id:)
+      create(:store_info, :shopify, storable: product, store_id: shopify_variant_id)
+
+      expect(sale_item.reload).to be_shopify_variant_unlinked
+      expect(described_class.shopify_variant_unlinked).to contain_exactly(sale_item)
+    end
+
+    it "is neither unlinked nor in the scope without a Shopify variant ID" do
+      sale_item = create(:sale_item, product:, shopify_variant_id: nil)
+
+      expect(sale_item).not_to be_shopify_variant_unlinked
+      expect(described_class.shopify_variant_unlinked).to be_empty
+    end
+
+    it "answers from a preloaded link without querying" do
+      create(:sale_item, product:, shopify_variant_id:)
+      sale_item = described_class.includes(:shopify_variant_info).sole
+      queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") { |*, payload| queries << payload[:sql] }
+
+      sale_item.shopify_variant_unlinked?
+
+      expect(queries).to be_empty
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+  end
+
   describe "auditing" do
     it "is audited" do
       expect(described_class.auditing_enabled).to be true
+    end
+
+    it "writes no audit when only the Shopify variant ID changes" do
+      sale_item = create(:sale_item)
+
+      expect { sale_item.update!(shopify_variant_id: "gid://shopify/ProductVariant/1") }
+        .not_to change { sale_item.audits.count }
     end
   end
 end

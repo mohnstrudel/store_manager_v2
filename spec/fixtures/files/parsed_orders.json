@@ -87,7 +87,12 @@
         "qty": 1,
         "price": "303.75",
         "expected_revenue": "264.38",
-        "sale_item_woo_id": 7450
+        "sale_item_woo_id": 7450,
+        "variant": {
+          "woo_id": 2222,
+          "product_woo_id": 22,
+          "options": []
+        }
       }
     ]
   }

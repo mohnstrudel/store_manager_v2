@@ -76,9 +76,7 @@ RSpec.describe "Shopify Job Integration" do
       product.variants << variant
 
       allow_any_instance_of(Product).to receive(:shopify_payload).and_return(serialized_product)
-      allow(api_client).to receive(:fetch_product).and_return(
-        {"variants" => {"edges" => [{"node" => {"selectedOptions" => [{"name" => "Title", "value" => "Default Title"}]}}]}}
-      )
+      allow(api_client).to receive(:fetch_product_option_names).and_return(["Title"])
       allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
     end
 

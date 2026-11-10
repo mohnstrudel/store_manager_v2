@@ -43,7 +43,7 @@ RSpec.describe "Signups" do
 
       follow_redirect!
 
-      expect(inertia.props[:flash][:notice]).to eq("Account for new@example.com was successfully created")
+      expect(inertia.flash[:notice]).to eq("Account for new@example.com was successfully created")
     end
 
     it "redirects back to the signup form with errors on invalid params" do

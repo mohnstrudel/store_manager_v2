@@ -47,7 +47,7 @@ RSpec.describe Product::Shopify::Media::Downloader do
       result = described_class.call(media_items:)
 
       expect(result.downloads_by_key.keys).to contain_exactly("first", "second")
-      expect(result.failed_store_ids).to contain_exactly(failed_store_id)
+      expect(result.downloaded_checksums.size).to eq(2)
     end
 
     it "tracks successful downloads and exposes their checksums" do

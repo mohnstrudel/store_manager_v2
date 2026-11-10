@@ -12,7 +12,7 @@ module Shopify
         createdAt
         updatedAt
         publishedAt
-        media(first: 20) {
+        media(first: 250) {
           nodes {
             ... on MediaImage {
               id
@@ -27,31 +27,35 @@ module Shopify
             }
           }
         }
-        variants(first: 10) {
-          edges {
-            node {
+      GQL
+
+      VARIANT_CONNECTION_FIELDS = <<~GQL
+        pageInfo {
+          hasNextPage
+        }
+        edges {
+          node {
+            id
+            title
+            sku
+            price
+            inventoryItem {
               id
-              title
-              sku
-              price
-              inventoryItem {
-                id
-                unitCost {
-                  amount
-                  currencyCode
-                }
-                measurement {
-                  weight {
-                    value
-                  }
+              unitCost {
+                amount
+                currencyCode
+              }
+              measurement {
+                weight {
+                  value
                 }
               }
-              createdAt
-              updatedAt
-              selectedOptions {
-                value
-                name
-              }
+            }
+            createdAt
+            updatedAt
+            selectedOptions {
+              value
+              name
             }
           }
         }
@@ -62,19 +66,55 @@ module Shopify
           query ProductById($id: ID!) {
             product(id: $id) {
               #{PRODUCT_FIELDS}
+              variants(first: 250) {
+                #{VARIANT_CONNECTION_FIELDS}
+              }
             }
           }
         GQL
       end
 
-      def self.list
+      def self.media_by_id
+        <<~GQL
+          query ProductMediaById($id: ID!) {
+            product(id: $id) {
+              id
+              media(first: 250) {
+                nodes {
+                  ... on MediaImage {
+                    id
+                    alt
+                    status
+                    createdAt
+                    updatedAt
+                  }
+                }
+              }
+            }
+          }
+        GQL
+      end
+
+      def self.options_by_id
+        <<~GQL
+          query ProductOptionsById($id: ID!) {
+            product(id: $id) {
+              id
+              options {
+                name
+              }
+            }
+          }
+        GQL
+      end
+
+      def self.list(updated_since: nil)
         <<~GQL
           query FetchProducts($first: Int!, $after: String) {
             products(
               first: $first,
               after: $after,
-              sortKey: CREATED_AT,
-              reverse: true
+              #{Shopify::Graphql::ListArguments.for(updated_since:)}
             ) {
               pageInfo {
                 hasNextPage
@@ -83,6 +123,9 @@ module Shopify
               edges {
                 node {
                   #{PRODUCT_FIELDS}
+                  variants(first: 100) {
+                    #{VARIANT_CONNECTION_FIELDS}
+                  }
                 }
               }
             }

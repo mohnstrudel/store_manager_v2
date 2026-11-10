@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Variant::Shopify::Importer
+  class Error < StandardError; end
+
   attr_reader :product, :parsed, :sibling_store_ids, :variant
   private :product, :parsed, :sibling_store_ids, :variant
 
@@ -9,7 +11,7 @@ class Variant::Shopify::Importer
     parsed_variants.each do |parsed_variant|
       import(product, parsed_variant, sibling_store_ids: store_ids)
     rescue => error
-      raise StandardError, format_import_error(error, product:, parsed_variant:)
+      raise Error, format_import_error(error, product:, parsed_variant:)
     end
     VariantImportConflict.keep_only(product, store_ids)
   end
@@ -51,10 +53,16 @@ class Variant::Shopify::Importer
 
   def find_or_initialize_variant
     @variant = Variant.find_by_shopify_id(parsed[:store_id]) if parsed[:store_id]
+    release_base_variant_link if base_variant_gained_options?
 
     if variant.nil? || belongs_to_different_product?
       @variant = product.variants.find_by(variant_identity_attrs) || product.variants.new
     end
+  end
+
+  def base_variant_gained_options?
+    variant&.persisted? && variant.base_model? && !belongs_to_different_product? &&
+      variant_identity_attrs.values.any?
   end
 
   def belongs_to_different_product?
@@ -83,14 +91,14 @@ class Variant::Shopify::Importer
     return attributes if parsed[:is_single_variant]
 
     parsed[:options].each do |option|
-      case option[:name]
-      when *Variant::Shopify::OPTION_NAMES[:color]
+      case Variant::Shopify.dimension_for(option[:name])
+      when :color
         attributes[:color] = Color.find_or_create_by(value: option[:value])
         product.colors |= [attributes[:color]]
-      when *Variant::Shopify::OPTION_NAMES[:size]
+      when :size
         attributes[:size] = Size.find_or_create_by(value: option[:value])
         product.sizes |= [attributes[:size]]
-      when *Variant::Shopify::OPTION_NAMES[:version]
+      when :version
         attributes[:version] = Version.find_or_create_by(value: option[:value])
         product.versions |= [attributes[:version]]
       end
@@ -145,6 +153,11 @@ class Variant::Shopify::Importer
     return if amount.blank?
 
     attributes[:purchase_cost] = convert_to_usd(amount, parsed[:usd_conversion_rate], :purchase_cost)
+  end
+
+  def release_base_variant_link
+    variant.shopify_info.destroy!
+    @variant = nil
   end
 
   def identity_holder

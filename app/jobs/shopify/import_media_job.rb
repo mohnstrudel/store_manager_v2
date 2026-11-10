@@ -2,8 +2,16 @@
 
 module Shopify
   class ImportMediaJob < ApplicationJob
-    def perform(product, parsed_media)
-      product.import_shopify_media(parsed_media:)
+    STATUS_EXPIRATION = 10.minutes.to_i
+
+    queue_as :media
+
+    def perform(product, parsed_media, force: false)
+      product.import_shopify_media(parsed_media:, force:)
+    end
+
+    def expiration
+      STATUS_EXPIRATION
     end
   end
 end

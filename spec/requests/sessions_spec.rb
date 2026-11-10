@@ -42,7 +42,7 @@ RSpec.describe "Sessions" do
 
       follow_redirect!
 
-      expect(inertia.props[:flash][:alert]).to eq("Try another email address or password")
+      expect(inertia.flash[:alert]).to eq("Try another email address or password")
     end
 
     it "rejects credentials without a password and signs nobody in" do

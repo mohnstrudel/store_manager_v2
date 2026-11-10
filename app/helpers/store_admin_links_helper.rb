@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
 module StoreAdminLinksHelper
+  def sale_store_type(sale)
+    return nil unless sale
+    return "shopify" if sale.shopify_name.present? || sale.shopify_id.present?
+
+    "woo" if sale.woo_store_id.present?
+  end
+
   def sale_shop_link(sale)
     if sale.shopify_info&.store_id&.present?
       "https://admin.shopify.com/store/68d8f5-af/orders/#{sale.shopify_info.id_short}"

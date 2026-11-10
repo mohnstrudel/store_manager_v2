@@ -39,6 +39,34 @@ RSpec.describe Shopify::Graphql::OrderQuery do
       expect(query).to include("hasNextPage")
       expect(query).to include("endCursor")
     end
+
+    context "without updated_since" do
+      it "lists the newest created orders first with no filter" do
+        query = described_class.list
+
+        expect(query).to include("sortKey: CREATED_AT")
+        expect(query).to include("reverse: true")
+        expect(query).not_to include("UPDATED_AT")
+        expect(query).not_to include("updated_at")
+      end
+    end
+
+    context "with updated_since" do
+      let(:updated_since) { ActiveSupport::TimeZone["Asia/Singapore"].local(2026, 11, 10, 17, 45) }
+      let(:query) { described_class.list(updated_since:) }
+
+      it "filters to orders updated at or after that moment in UTC and sorts by update time" do
+        expect(query).to include(%(query: "updated_at:>='2026-11-10T09:45:00Z'"))
+        expect(query).to include("sortKey: UPDATED_AT")
+        expect(query).not_to include("CREATED_AT")
+        expect(query).not_to include("reverse")
+      end
+
+      it "keeps the same selection" do
+        expect(query).to include("lineItems(first: 50)")
+        expect(query).to include("customer")
+      end
+    end
   end
 
   describe "SALE_FIELDS" do
@@ -73,9 +101,9 @@ RSpec.describe Shopify::Graphql::OrderQuery do
 
     it "asks whether line items were truncated" do
       aggregate_failures do
-        expect(described_class::SALE_FIELDS).to include("lineItems(first: 10)")
+        expect(described_class::SALE_FIELDS).to include("lineItems(first: 50)")
         expect(described_class::SALE_FIELDS).to match(
-          /lineItems\(first: 10\) \{\s*pageInfo \{\s*hasNextPage\s*\}/
+          /lineItems\(first: 50\) \{\s*pageInfo \{\s*hasNextPage\s*\}/
         )
       end
     end
@@ -117,10 +145,10 @@ RSpec.describe Shopify::Graphql::OrderQuery do
     end
 
     it "uses a lighter product payload for order sync" do
-      expect(described_class::SALE_FIELDS).not_to include("media(first: 20)")
+      expect(described_class::SALE_FIELDS).not_to include("media(")
       expect(described_class::SALE_FIELDS).not_to include("descriptionHtml")
       expect(described_class::SALE_FIELDS).not_to include("inventoryItem")
-      expect(described_class::SALE_FIELDS).not_to include("variants(first: 10)")
+      expect(described_class::SALE_FIELDS).not_to include("variants(")
     end
   end
 end

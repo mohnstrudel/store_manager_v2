@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 
-import FlashMessages from "@/components/flash-messages/FlashMessages";
+import Notifications from "@/components/notifications/Notifications";
 import { useDocumentTitle } from "@/utils/useDocumentTitle";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col items-center py-4">
-      <FlashMessages />
+      <Notifications />
 
       <div className="flex flex-1 w-full items-center justify-center">
         <div className="section_border_base bg-transparent w-full max-w-3xl min-h-96 px-4 py-8 backdrop-blur border-gray-500/20 dark:shadow-2xl lg:px-12 lg:py-14">

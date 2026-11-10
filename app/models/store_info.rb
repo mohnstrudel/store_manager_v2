@@ -12,6 +12,7 @@
 #  pull_time      :datetime
 #  push_time      :datetime
 #  slug           :string
+#  source_url     :string
 #  storable_type  :string           not null
 #  store_name     :integer          default(0), not null
 #  created_at     :datetime         not null

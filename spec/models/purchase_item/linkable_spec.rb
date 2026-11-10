@@ -9,6 +9,56 @@ RSpec.describe PurchaseItem::Linkable do
   let(:sale) { create(:sale, status: Sale::ACTIVE_STATUSES.first) }
   let(:sale_item) { create(:sale_item, sale:, product:, variant:, qty: 2) }
 
+  describe ".unlinked_ids_by_identity" do
+    it "groups the ids of the unlinked purchase items by Product and Variant, in id order" do
+      other_product = create(:product)
+      first = create(:purchase_item, purchase:)
+      second = create(:purchase_item, purchase:)
+      other = create(:purchase_item, purchase: create(:purchase, product: other_product))
+      create(:purchase_item, purchase:, sale_item:)
+      create(:purchase_item, purchase: create(:purchase, product: create(:product)))
+
+      grouped = PurchaseItem.unlinked_ids_by_identity([[product.id, variant.id], [other_product.id, other_product.base_variant.id]])
+
+      expect(grouped).to eq(
+        [product.id, variant.id] => [first.id, second.id],
+        [other_product.id, other_product.base_variant.id] => [other.id]
+      )
+    end
+
+    it "matches a missing Variant only against purchase items without a Variant" do
+      create(:purchase_item, purchase:)
+      without_variant = create(:purchase_item, purchase:)
+      without_variant.update_columns(variant_id: nil)
+
+      expect(PurchaseItem.unlinked_ids_by_identity([[product.id, nil]])).to eq([product.id, nil] => [without_variant.id])
+    end
+
+    it "reads nothing without identities" do
+      create(:purchase_item, purchase:)
+
+      expect(PurchaseItem.unlinked_ids_by_identity([])).to eq({})
+    end
+
+    it "answers many identities in one query" do
+      identities = Array.new(3) do
+        other_product = create(:product)
+        create(:purchase_item, purchase: create(:purchase, product: other_product))
+        [other_product.id, other_product.base_variant.id]
+      end
+      queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+        queries << payload[:sql] unless %w[SCHEMA TRANSACTION].include?(payload[:name])
+      end
+
+      PurchaseItem.unlinked_ids_by_identity(identities)
+
+      expect(queries.size).to eq(1)
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+  end
+
   describe ".link_exact" do
     it "locks SaleItems and PurchaseItems in ascending ID order" do
       purchase_items = create_list(:purchase_item, 2, purchase:)

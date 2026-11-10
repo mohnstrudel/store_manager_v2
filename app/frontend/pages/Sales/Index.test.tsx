@@ -24,6 +24,44 @@ describe("Sales/Index", () => {
     );
   });
 
+  it("links to Broken Sales before Tags when the user can open it", () => {
+    renderIndex();
+
+    const broken = screen.getByRole("link", { name: "Broken" });
+    const tags = screen.getByRole("link", { name: "Tags" });
+
+    expect(broken).toHaveAttribute("href", "/broken_sales");
+    expect(broken.compareDocumentPosition(tags) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("hides Broken Sales from users who cannot open it", () => {
+    renderIndex({ can_view_broken_sales: false });
+
+    expect(screen.queryByRole("link", { name: "Broken" })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    [1, "Broken, 1 problem", "1"],
+    [99, "Broken, 99 problems", "99"],
+    [100, "Broken, 100 problems", "99+"],
+    [225, "Broken, 225 problems", "99+"],
+  ])("badges the Broken link with %i problems", (count, name, badgeText) => {
+    renderIndex({ broken_problem_count: count });
+
+    const broken = screen.getByRole("link", { name });
+    const badge = broken.querySelector(".nav_menu_badge");
+    expect(broken).toHaveAttribute("href", "/broken_sales");
+    expect(badge).toHaveTextContent(badgeText);
+    expect(badge).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("shows no badge on the Broken link when nothing is broken", () => {
+    renderIndex({ broken_problem_count: 0 });
+
+    const broken = screen.getByRole("link", { name: "Broken" });
+    expect(broken.querySelector(".nav_menu_badge")).toBeNull();
+  });
+
   it("renders the sale customer and product title in the table", () => {
     renderIndex();
 
@@ -56,6 +94,45 @@ describe("Sales/Index", () => {
     const warehouseLink = screen.getByRole("link", { name: /Berlin Hub/ });
     expect(warehouseLink).toHaveAttribute("href", "/purchase_items/101");
     expect(screen.queryByText("Processing")).not.toBeInTheDocument();
+  });
+
+  describe("unlinked Shopify variant mark", () => {
+    it("marks a sale whose Shopify variant has no match with a link to the Shopify conflicts", () => {
+      renderIndex({ sales: [makeSaleIndexRecord({ shopify_variant_unlinked: true })] });
+
+      const mark = screen.getByRole("link", { name: "BROKEN" });
+      expect(mark).toHaveAttribute("href", "/broken_sales?issue_type=shopify_conflicts");
+      expect(mark).toHaveAttribute(
+        "title",
+        "Shopify variant has no match here. Fix it in Broken Sales.",
+      );
+    });
+
+    it("marks only the affected sale", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({ id: 1, shopify_variant_unlinked: true }),
+          makeSaleIndexRecord({ id: 2, shopify_variant_unlinked: false }),
+        ],
+      });
+
+      expect(screen.getAllByRole("link", { name: "BROKEN" })).toHaveLength(1);
+    });
+
+    it("shows no mark when every Shopify variant is linked or absent", () => {
+      renderIndex({ sales: [makeSaleIndexRecord({ shopify_variant_unlinked: false })] });
+
+      expect(screen.queryByRole("link", { name: "BROKEN" })).not.toBeInTheDocument();
+    });
+
+    it("does not open the sale when the mark is used", async () => {
+      const user = userEvent.setup();
+      renderIndex({ sales: [makeSaleIndexRecord({ shopify_variant_unlinked: true })] });
+
+      await user.click(screen.getByRole("link", { name: "BROKEN" }));
+
+      expect(router.visit).not.toHaveBeenCalled();
+    });
   });
 
   describe("payment progress marker", () => {
@@ -196,7 +273,6 @@ describe("Sales/Index", () => {
             "tag_options",
             "tag_colors",
             "can_tag_sales",
-            "flash",
           ],
           preserveState: true,
         }),
@@ -793,8 +869,29 @@ describe("Sales/Index", () => {
 
       expect(screen.getByText("Sales Synchronization")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Fetch Everything" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Fetch Last 100 Sales" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Fetch Changes" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Last 100/ })).not.toBeInTheDocument();
       expect(screen.getByRole("link", { name: "Track Jobs Progress" })).toBeInTheDocument();
+    });
+
+    it("posts the changes scope to the sales pull path when Fetch Changes is clicked", async () => {
+      const user = userEvent.setup();
+      renderIndex();
+
+      await user.click(screen.getByRole("button", { name: "Store Sync" }));
+      await user.click(screen.getByRole("button", { name: "Fetch Changes" }));
+
+      expect(router.post).toHaveBeenCalledWith("/sales/pull", { scope: "changes" });
+    });
+
+    it("posts no params to the sales pull path when Fetch Everything is clicked", async () => {
+      const user = userEvent.setup();
+      renderIndex();
+
+      await user.click(screen.getByRole("button", { name: "Store Sync" }));
+      await user.click(screen.getByRole("button", { name: "Fetch Everything" }));
+
+      expect(router.post).toHaveBeenCalledWith("/sales/pull", {});
     });
 
     it("shows the last sync time when last_sync_time is provided", async () => {
@@ -830,7 +927,6 @@ describe("Sales/Index", () => {
       "tag_options",
       "tag_colors",
       "can_tag_sales",
-      "flash",
     ];
 
     function renderTagged(tags: SalesTagRecord[] = [vip], options: IndexOptions = {}) {
@@ -1058,6 +1154,8 @@ type IndexOptions = {
   filters?: SalesFilters;
   tag_options?: SalesTagRecord[];
   can_tag_sales?: boolean;
+  can_view_broken_sales?: boolean;
+  broken_problem_count?: number | null;
   last_sync_time?: string | null;
   last_sync_at?: string | null;
 };
@@ -1070,12 +1168,16 @@ function indexElement({
   filters = { hide_partial_payments: false, missing_purchases_only: false, tag_id: null },
   tag_options = [],
   can_tag_sales = true,
+  can_view_broken_sales = true,
+  broken_problem_count = 0,
   last_sync_time = "20.05 at 10:00",
   last_sync_at = null,
 }: IndexOptions = {}) {
   return (
     <Index
+      broken_problem_count={broken_problem_count}
       can_tag_sales={can_tag_sales}
+      can_view_broken_sales={can_view_broken_sales}
       filters={filters}
       last_sync_at={last_sync_at}
       last_sync_time={last_sync_time}

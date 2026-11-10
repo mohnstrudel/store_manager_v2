@@ -16,11 +16,20 @@ class SalesController < ApplicationController
     criteria = listing_criteria(catalog)
     @sales = Sale.listing(**criteria).page(params[:page])
     can_tag_sales = policy(:sale).update_tags?
+    can_view_broken_sales = policy(:broken_sale).index?
+    broken_problem_count = cached_broken_problem_count if can_view_broken_sales
 
-    return unless stale?(etag: index_etag(criteria, catalog, can_tag_sales))
+    return unless stale?(etag: index_etag(criteria, catalog, can_tag_sales, broken_problem_count))
 
     render_inertia "Sales/Index", serializer: Sales::IndexResource,
-      locals: {sales: @sales, criteria:, tag_catalog: catalog, can_tag_sales:}
+      locals: {
+        sales: @sales,
+        criteria:,
+        tag_catalog: catalog,
+        can_tag_sales:,
+        can_view_broken_sales:,
+        broken_problem_count:
+      }
   end
 
   def show
@@ -117,12 +126,16 @@ class SalesController < ApplicationController
     {**base_listing_criteria, tag_id: available_tag_id(catalog)}
   end
 
-  def index_etag(criteria, catalog, can_tag_sales)
+  def cached_broken_problem_count
+    Rails.cache.fetch("broken_sales/problem_count", expires_in: 1.minute) { BrokenSales::Counts.new.total }
+  end
+
+  def index_etag(criteria, catalog, can_tag_sales, broken_problem_count)
     [
       @sales, criteria, @sales.current_page, @sales.total_count,
-      @sales.map { |sale| [sale.id, sale.sales_tags.map(&:id).sort] },
+      @sales.map { |sale| [sale.id, sale.sales_tags.map(&:id).sort, sale.shopify_variant_unlinked?] },
       catalog.map { |tag| [tag.id, tag.name, tag.color, tag.updated_at.to_fs(:usec)] },
-      can_tag_sales, current_user.role
+      can_tag_sales, current_user.role, broken_problem_count
     ]
   end
 

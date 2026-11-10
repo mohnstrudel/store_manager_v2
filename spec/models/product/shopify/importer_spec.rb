@@ -49,7 +49,36 @@ RSpec.describe Product::Shopify::Importer do
       product = described_class.import(parsed_product)
 
       expect(Shopify::PullVariantsJob).to have_received(:perform_later).with(product, parsed_product[:variants])
-      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media])
+      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media], force: false)
+    end
+
+    it "queues the media import as forced when asked to force" do
+      allow(Shopify::PullVariantsJob).to receive(:perform_later)
+      allow(Shopify::ImportMediaJob).to receive(:perform_later)
+
+      product = described_class.import(parsed_product, force: true)
+
+      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media], force: true)
+    end
+
+    it "does not queue a media import when the product's images are unchanged" do
+      allow(Shopify::PullVariantsJob).to receive(:perform_later)
+      allow(Shopify::ImportMediaJob).to receive(:perform_later)
+      allow_any_instance_of(Product).to receive(:shopify_media_unchanged?).with(parsed_product[:media]).and_return(true) # rubocop:disable RSpec/AnyInstance
+
+      described_class.import(parsed_product)
+
+      expect(Shopify::ImportMediaJob).not_to have_received(:perform_later)
+    end
+
+    it "queues a forced media import even when the images are unchanged" do
+      allow(Shopify::PullVariantsJob).to receive(:perform_later)
+      allow(Shopify::ImportMediaJob).to receive(:perform_later)
+      allow_any_instance_of(Product).to receive(:shopify_media_unchanged?).and_return(true) # rubocop:disable RSpec/AnyInstance
+
+      product = described_class.import(parsed_product, force: true)
+
+      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media], force: true)
     end
 
     it "captures the EUR-to-USD rate before enqueuing priced variants" do
@@ -68,6 +97,51 @@ RSpec.describe Product::Shopify::Importer do
         product,
         [priced_variant.merge(usd_conversion_rate: BigDecimal("1.1578"), usd_conversion_date: Date.new(2026, 9, 2))]
       )
+    end
+
+    context "when asked to import variants inline" do
+      let(:variants) do
+        [
+          {store_id: "gid://shopify/ProductVariant/1", sku: "inline-a", options: [{name: "Version", value: "A"}]},
+          {store_id: "gid://shopify/ProductVariant/2", sku: "inline-b", options: [{name: "Version", value: "B"}]}
+        ]
+      end
+
+      before do
+        allow(Shopify::PullVariantsJob).to receive(:perform_later)
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
+      end
+
+      it "imports the variants before returning and queues only the media" do
+        product = described_class.import(parsed_product.merge(variants:), inline_variants: true)
+
+        expect(product.variants.real.map { |variant| variant.shopify_info.store_id })
+          .to contain_exactly("gid://shopify/ProductVariant/1", "gid://shopify/ProductVariant/2")
+        expect(Shopify::PullVariantsJob).not_to have_received(:perform_later)
+        expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media], force: false)
+      end
+
+      it "converts priced variants with the EUR-to-USD rate of the import day" do
+        conversion = ExchangeRate::Conversion.new(
+          order_date: Date.new(2026, 9, 4),
+          effective_date: Date.new(2026, 9, 2),
+          rate: BigDecimal("1.1578")
+        )
+        allow(ExchangeRate).to receive(:eur_to_usd_conversion).and_return(conversion)
+        priced = variants.map { |variant| variant.merge(selling_price: "450.00") }
+
+        product = described_class.import(parsed_product.merge(variants: priced), inline_variants: true)
+
+        expect(product.variants.real.map(&:selling_price)).to all(eq(BigDecimal("521.01")))
+      end
+
+      it "imports nothing for a product without variants" do
+        allow(Variant::Shopify::Importer).to receive(:import_all)
+
+        described_class.import(parsed_product.merge(variants: nil), inline_variants: true)
+
+        expect(Variant::Shopify::Importer).not_to have_received(:import_all)
+      end
     end
 
     it "generates correct full title" do
@@ -475,14 +549,11 @@ RSpec.describe Product::Shopify::Importer do
     end
 
     context "when validations fail" do
-      before do
-        allow_any_instance_of(Product).to receive(:save!).and_raise( # rubocop:todo RSpec/AnyInstance
-          ActiveRecord::RecordInvalid.new(Product.new)
-        )
-      end
+      let(:parsed_product) { super().merge(title: "") }
 
-      it "raises the error" do
-        expect { importer.update_or_create }.to raise_error(ActiveRecord::RecordInvalid)
+      it "raises an Importer::Error naming the invalid record and its validation errors" do
+        expect { importer.update_or_create }
+          .to raise_error(described_class::Error, "Failed to process Product: Title can't be blank")
       end
     end
   end

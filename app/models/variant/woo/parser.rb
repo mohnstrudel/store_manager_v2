@@ -17,9 +17,9 @@ class Variant::Woo::Parser
   end
 
   def parse
-    return if option_attributes.blank?
-
     woo_id = line_item[:variation_id] if line_item[:variation_id].to_i.positive?
+
+    return if option_attributes.blank? && woo_id.blank?
 
     {
       woo_id:,

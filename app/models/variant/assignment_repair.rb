@@ -7,6 +7,12 @@ class Variant::AssignmentRepair
     :repaired_purchase_count,
     :repaired_sale_item_count
   )
+  ClosedOrderRepair = Data.define(:repaired, :skipped, :failed, :repaired_sale_ids, :queued_pulls)
+  SaleItemRepair = Data.define(:status, :sale_item, :unblocked_consequences, :queued_pulls) do
+    def noop?
+      status == :noop
+    end
+  end
 
   class << self
     def repair_purchase(purchase_id:, variant_id:)
@@ -15,6 +21,14 @@ class Variant::AssignmentRepair
 
     def repair_sale_item(sale_item_id:, variant_id:, product_id: nil)
       new.repair_sale_item(sale_item_id:, variant_id:, product_id:)
+    end
+
+    def repair_sale_item_and_requeue_import(sale_item_id:, variant_id:, requested_by: nil)
+      new.repair_sale_item_and_requeue_import(sale_item_id:, variant_id:, requested_by:)
+    end
+
+    def repair_closed_sale_items(product_id:, variant_id:, requested_by: nil)
+      new.repair_closed_sale_items(product_id:, variant_id:, requested_by:)
     end
 
     def repair_purchase_item_link(purchase_item_id:)
@@ -217,6 +231,7 @@ class Variant::AssignmentRepair
       return :noop unless integrity.broken_sale_item?(sale_item.id)
       ensure_source_sale_items_locked(purchase_items, sale_items)
 
+      previous_assignment = sale_item.slice(:id, :sale_id, :product_id, :variant_id).values
       sale_item.update_columns( # rubocop:disable Rails/SkipsModelValidations
         product_id: product.id,
         variant_id: variant.id,
@@ -225,8 +240,33 @@ class Variant::AssignmentRepair
       sale_items.first.assign_attributes(product_id: product.id, variant_id: variant.id)
 
       reconcile_locked_links(sale_items:, purchase_items:)
+      audit_reassignment([previous_assignment], product_id: product.id, variant_id: variant.id)
       :repaired
     end
+  end
+
+  def repair_sale_item_and_requeue_import(sale_item_id:, variant_id:, requested_by: nil)
+    blocked = blocked_consequences(sale_item_id)
+    status = repair_sale_item(sale_item_id:, variant_id:)
+    sale_item = SaleItem.find(sale_item_id)
+    return SaleItemRepair.new(status:, sale_item:, unblocked_consequences: [], queued_pulls: 0) unless status == :repaired
+
+    queued_pulls = Sale::ImportFailure.pull_unresolved_later(sale_ids: [sale_item.sale_id], requested_by:)
+    SaleItemRepair.new(status:, sale_item:, unblocked_consequences: blocked, queued_pulls:)
+  end
+
+  def repair_closed_sale_items(product_id:, variant_id:, requested_by: nil)
+    lines, skipped = reassign_closed_lines(product_id:, variant_id:)
+    return failed_closed_order_repair(product_id) unless lines
+
+    repaired_sale_ids = lines.map(&:second).uniq
+    ClosedOrderRepair.new(
+      repaired: lines.size,
+      skipped:,
+      failed: 0,
+      repaired_sale_ids:,
+      queued_pulls: Sale::ImportFailure.pull_unresolved_later(sale_ids: repaired_sale_ids, requested_by:)
+    )
   end
 
   private
@@ -360,6 +400,10 @@ class Variant::AssignmentRepair
 
   def lock_repair_candidate(record, variant_id, product_id: nil)
     product = product_id ? Product.find_by(id: product_id) : record.product || record.variant&.product
+    lock_candidate(product, variant_id)
+  end
+
+  def lock_candidate(product, variant_id)
     raise InvalidCandidate, "No Product is available for this repair" unless product
 
     product = Product.lock.find(product.id)
@@ -377,5 +421,73 @@ class Variant::AssignmentRepair
         product_id: canonical_variant.product_id
       ) == :repaired
     end
+  end
+
+  def audit_reassignment(previous_assignments, product_id:, variant_id:)
+    versions = Audited.audit_class
+      .where(auditable_type: "SaleItem", auditable_id: previous_assignments.map(&:first))
+      .group(:auditable_id)
+      .maximum(:version)
+    shared = audit_attributes
+    audits = previous_assignments.filter_map do |sale_item_id, sale_id, previous_product_id, previous_variant_id|
+      changes = {"product_id" => [previous_product_id, product_id], "variant_id" => [previous_variant_id, variant_id]}
+        .reject { |_attribute, (previous, current)| previous == current }
+      next if changes.empty?
+
+      shared.merge(
+        auditable_type: "SaleItem",
+        auditable_id: sale_item_id,
+        associated_type: "Sale",
+        associated_id: sale_id,
+        action: "update",
+        audited_changes: changes,
+        version: versions.fetch(sale_item_id, 0) + 1
+      )
+    end
+    Audited.audit_class.insert_all!(audits) if audits.any? # rubocop:disable Rails/SkipsModelValidations
+  end
+
+  def audit_attributes
+    user = Audited.store[:audited_user] || Audited.store[:current_user].try(:call)
+    Audited.audit_class.new(user:).slice(:user_id, :user_type, :username).symbolize_keys.merge(
+      request_uuid: Audited.store[:current_request_uuid] || SecureRandom.uuid,
+      remote_address: Audited.store[:current_remote_address]
+    )
+  end
+
+  def blocked_consequences(sale_item_id)
+    sale_item = SaleItem.preload(:sale, product: :variants, variant: {product: :variants}).find(sale_item_id)
+    Variant::AssignmentImpact.new(integrity:).consequences(sale_item, reason: integrity.reason_for(:sale_items, sale_item))
+  end
+
+  def reassign_closed_lines(product_id:, variant_id:)
+    SaleItem.transaction do
+      closed_lines = closed_broken_lines(product_id)
+      lines = closed_lines.where.missing(:purchase_items).lock("FOR UPDATE OF sale_items").pluck(:id, :sale_id, :product_id, :variant_id)
+      product, variant = lock_candidate(Product.find_by(id: product_id), variant_id)
+      skipped = closed_lines.count - lines.size
+      if lines.any?
+        SaleItem.where(id: lines.map(&:first)).update_all(product_id: product.id, variant_id: variant.id, updated_at: Time.current) # rubocop:disable Rails/SkipsModelValidations
+        audit_reassignment(lines, product_id: product.id, variant_id: variant.id)
+      end
+      [lines, skipped]
+    end
+  rescue ActiveRecord::ActiveRecordError => error
+    Sentry.capture_exception(error, extra: {product_id:, variant_id:})
+    nil
+  end
+
+  def closed_broken_lines(product_id)
+    Variant::AssignmentImpact.new(integrity:).order_rows(scope: "closed", product_id:).reorder(:id)
+  end
+
+  def failed_closed_order_repair(product_id)
+    ClosedOrderRepair.new(
+      repaired: 0,
+      skipped: 0,
+      failed: closed_broken_lines(product_id).count,
+      repaired_sale_ids: [],
+      queued_pulls: 0
+    )
   end
 end

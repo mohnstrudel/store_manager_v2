@@ -54,12 +54,19 @@ Rails.application.routes.draw do
 
     post "media/uploads", to: "media_uploads#create", as: :media_uploads
 
-    resources :variant_assignment_issues, only: :index
-    namespace :variant_assignment_issues do
+    get "variant_assignment_issues", to: redirect(path: "/broken_sales"), as: :legacy_variant_assignment_issues
+    resources :broken_sales, only: :index
+    namespace :broken_sales do
       resource :backfill, only: :create
       resources :purchases, only: :update
       resources :sale_items, only: :update
       resources :purchase_item_links, only: :update
+      resources :products, only: [] do
+        resource :closed_order_repair, only: :create
+      end
+      resources :import_failures, only: [] do
+        resource :pull, only: :create, controller: :import_failure_pulls
+      end
     end
 
     resources :products, concerns: :paginated do

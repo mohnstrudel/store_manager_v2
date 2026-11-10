@@ -11,6 +11,10 @@ module StoreManagerV2
     config.load_defaults 8.1
 
     config.active_job.queue_adapter = :sidekiq
+    config.active_storage.queues.analysis = :media
+    config.active_storage.queues.transform = :media
+    config.active_storage.queues.purge = :media
+    config.x.sentry_organization_url = "https://handsomecake-goodies.sentry.io"
 
     config.action_mailer.preview_paths << Rails.root.join("app/mailers/previews").to_s
 

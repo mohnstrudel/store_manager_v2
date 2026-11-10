@@ -38,7 +38,6 @@ export default function Index({ products, pagination, search, last_sync_at }: In
 
       {syncOpen && (
         <SyncModal
-          fetchLimitedLabel="Fetch Last 100 Products"
           id="products-index-sync-modal"
           lastSyncAt={last_sync_at}
           onClose={closeSync}

@@ -11,5 +11,8 @@ class Sales::ListingResource < Sales::BaseResource
     sale.customer.email
   end
 
+  typelize :boolean
+  attribute :shopify_variant_unlinked, &:shopify_variant_unlinked?
+
   many :sale_items, resource: Sales::ListingItemResource
 end

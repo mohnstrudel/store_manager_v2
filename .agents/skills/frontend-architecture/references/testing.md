@@ -13,7 +13,7 @@ Read this reference when a frontend change needs a test-seam decision or uses th
 - `@inertiajs/react` is globally aliased to `@/test/mocks/inertia`; do not create per-file Inertia mocks. Use its shared page helpers, router, and `nextFormErrors`.
 - `nextFormErrors` drives component error handling only. It does not prove redirect-with-errors across Rails, Inertia, and React.
 - Vitest uses `mockReset: true`; configure shared mocks per test or in `beforeEach`, never at module or `describe` scope.
-- The current form double drops optimistic callbacks and always reports `processing: false`. A component test using it cannot prove optimistic or processing-state behavior. Exercise the real lifecycle with Cuprite, or improve the canonical double once when the behavior is purely component-owned.
+- The current form double drops optimistic callbacks and reports `processing: false` unless a test calls `nextFormPending.mockReturnValueOnce(true)`, which leaves that form pending. A component test using it cannot prove optimistic behavior or when a request finishes. Exercise the real lifecycle with Cuprite, or improve the canonical double once when the behavior is purely component-owned.
 
 ## Shared Factories
 

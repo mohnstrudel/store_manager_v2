@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import AuthLayout from "./AuthLayout";
 
-vi.mock("@/components/flash-messages/FlashMessages", () => ({
-  default: () => <div data-testid="flash-messages" />,
+vi.mock("@/components/notifications/Notifications", () => ({
+  default: () => <div data-testid="notifications" />,
 }));
 
 describe("AuthLayout", () => {
@@ -21,7 +21,7 @@ describe("AuthLayout", () => {
     );
 
     expect(document.body).toHaveClass("wbg");
-    expect(screen.getByTestId("flash-messages")).toBeInTheDocument();
+    expect(screen.getByTestId("notifications")).toBeInTheDocument();
     expect(screen.getByText("Sign in form")).toBeVisible();
 
     unmount();

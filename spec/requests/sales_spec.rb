@@ -411,7 +411,7 @@ RSpec.describe "Sales" do
 
         expect(response).to have_http_status(:ok)
         expect(listed_ids).to eq([sale_a.id, sale_b.id, sale_c.id])
-        expect(inertia.props[:flash].compact).to be_empty
+        expect(inertia.flash).to be_empty
       end
 
       it "redirects an invalid or deleted tag_id to the canonical listing with the explanation and no loop" do
@@ -424,7 +424,7 @@ RSpec.describe "Sales" do
           expect(response).to redirect_to(sales_path(q: "batch", sort: "oldest", hide_partial_payments: "1", missing_purchases_only: "1"))
           follow_redirect!
           expect(response).to have_http_status(:ok)
-          expect(inertia.props[:flash]["notice"]).to eq(unavailable_notice)
+          expect(inertia.flash["notice"]).to eq(unavailable_notice)
           expect_inertia.to have_props(filters: {hide_partial_payments: true, missing_purchases_only: true, tag_id: nil})
         end
       end
@@ -1240,6 +1240,82 @@ RSpec.describe "Sales" do
     end
   end
 
+  describe "GET /sales unlinked Shopify variants" do
+    let(:shopify_variant_id) { "gid://shopify/ProductVariant/50971387363657" }
+    let(:linked_variant_id) { "gid://shopify/ProductVariant/1" }
+
+    def sale_with_linked_item
+      product = create(:product)
+      variant = create(:variant, product:, shopify_store_id: linked_variant_id)
+      create(:sale).tap { |sale| create(:sale_item, sale:, product:, variant:, shopify_variant_id: linked_variant_id) }
+    end
+
+    def flags
+      inertia.props[:sales].to_h { |sale| [sale[:id], sale[:shopify_variant_unlinked]] }
+    end
+
+    it "flags only the sales that hold an item whose Shopify variant has no local match" do
+      unlinked = create(:sale).tap { |sale| create(:sale_item, sale:, shopify_variant_id:) }
+      linked = sale_with_linked_item
+      without_shopify_variant = create(:sale).tap { |sale| create(:sale_item, sale:) }
+
+      get sales_path
+
+      expect(flags).to eq(unlinked.id => true, linked.id => false, without_shopify_variant.id => false)
+    end
+
+    it "loads the Shopify variant links of the whole page in one query" do
+      3.times { |index| create(:sale).tap { |sale| create(:sale_item, sale:, shopify_variant_id: "#{shopify_variant_id}#{index}") } }
+      link_queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+        link_queries << payload[:sql] if payload[:sql].include?(%("store_infos"."store_id" IN))
+      end
+
+      begin
+        get sales_path
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(flags.values).to eq([true, true, true])
+      expect(link_queries.size).to eq(1)
+    end
+
+    it "serves fresh props once the Shopify variant gets linked, without touching the sale" do
+      sale = create(:sale)
+      sale_item = create(:sale_item, sale:, shopify_variant_id:)
+      sale.update_columns(updated_at: 1.day.ago)
+      stamp = sale.reload.updated_at
+      get sales_path
+      old_etag = response.headers["ETag"]
+      expect(flags).to eq(sale.id => true)
+
+      create(:variant, product: sale_item.product, shopify_store_id: shopify_variant_id)
+      get sales_path, headers: {"If-None-Match" => old_etag}
+
+      expect(response).to have_http_status(:ok)
+      expect(flags).to eq(sale.id => false)
+      expect(sale.reload.updated_at).to eq(stamp)
+    end
+  end
+
+  describe "GET /sales/:id unlinked Shopify variants" do
+    it "flags each item whose Shopify variant has no local match" do
+      sale = create(:sale)
+      product = create(:product)
+      linked_variant = create(:variant, product:, shopify_store_id: "gid://shopify/ProductVariant/1")
+      linked = create(:sale_item, sale:, product:, variant: linked_variant, shopify_variant_id: "gid://shopify/ProductVariant/1")
+      unlinked = create(:sale_item, sale:, shopify_variant_id: "gid://shopify/ProductVariant/50971387363657")
+      without_shopify_variant = create(:sale_item, sale:)
+
+      get sale_path(sale)
+
+      flags = inertia.props[:sale][:sale_items].to_h { |item| [item[:id], item[:shopify_variant_unlinked]] }
+      expect(flags).to eq(linked.id => false, unlinked.id => true, without_shopify_variant.id => false)
+    end
+  end
+
   describe "GET /sales tags" do
     let(:sale) { create(:sale) }
     let!(:zebra) { create(:sales_tag, name: "Zebra", color: "pink") }
@@ -1285,6 +1361,108 @@ RSpec.describe "Sales" do
         get sales_path
 
         expect(inertia.props[:can_tag_sales]).to be(true)
+      end
+    end
+
+    it "lets admins open Broken Sales" do
+      get sales_path
+
+      expect(inertia.props[:can_view_broken_sales]).to be(true)
+    end
+
+    %i[manager support].each do |role|
+      it "hides Broken Sales from #{role} users" do
+        log_out
+        sign_in create(:user, role)
+
+        get sales_path
+
+        expect(inertia.props[:can_view_broken_sales]).to be(false)
+      end
+    end
+
+    describe "broken problem count" do
+      def break_order(status:)
+        sale = create(:sale, status:)
+        2.times { create(:sale_item, sale:).update_columns(variant_id: nil) }
+      end
+
+      def record_import_failures(count)
+        count.times do |index|
+          Sale::ImportFailure.record(
+            store_name: "woo", store_order_id: "failed-#{index}", message: "Woo order failed",
+            sentry_event_id: nil, failed_at: Time.current
+          )
+        end
+      end
+
+      it "totals every Broken Sales tab count for admins" do
+        integrity = instance_double(
+          Variant::AssignmentIntegrity,
+          counts: {sale_items: 81, purchases: 44, purchase_item_links: 0, sku_collisions: 96, shopify_conflicts: 1}
+        )
+        allow(Variant::AssignmentIntegrity).to receive(:new).and_return(integrity)
+        record_import_failures(3)
+
+        get sales_path
+
+        expect(inertia.props[:broken_problem_count]).to eq(225)
+      end
+
+      it "matches the sum of the tab counts on Broken Sales" do
+        break_order(status: "processing")
+        break_order(status: "cancelled")
+        create(:purchase).update_columns(variant_id: nil)
+        record_import_failures(2)
+
+        get broken_sales_path
+        tab_total = inertia.props[:counts].values.sum
+        get sales_path
+
+        expect(tab_total).to eq(7)
+        expect(inertia.props[:broken_problem_count]).to eq(tab_total)
+      end
+
+      it "keeps the count for 1 minute" do
+        allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+        record_import_failures(1)
+        get sales_path
+
+        break_order(status: "processing")
+        get sales_path
+        expect(inertia.props[:broken_problem_count]).to eq(1)
+
+        travel 61.seconds
+        get sales_path
+        expect(inertia.props[:broken_problem_count]).to eq(3)
+      end
+
+      it "serves fresh props when the count changes" do
+        sale.update_columns(updated_at: 1.day.ago)
+        get sales_path
+        old_etag = response.headers["ETag"]
+
+        record_import_failures(1)
+        get sales_path, headers: {"If-None-Match" => old_etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:broken_problem_count]).to eq(1)
+      end
+
+      %i[manager support].each do |role|
+        it "neither sends nor counts for #{role} users" do
+          log_out
+          sign_in create(:user, role)
+          break_order(status: "processing")
+          allow(Variant::AssignmentIntegrity).to receive(:new).and_call_original
+          allow(Sale::ImportFailure).to receive(:unresolved).and_call_original
+
+          get sales_path
+
+          expect(inertia.props[:broken_problem_count]).to be_nil
+          expect(Variant::AssignmentIntegrity).not_to have_received(:new)
+          expect(Sale::ImportFailure).not_to have_received(:unresolved)
+        end
       end
     end
 

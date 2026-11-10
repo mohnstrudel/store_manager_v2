@@ -133,7 +133,7 @@ RSpec.describe "Colors" do
 
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Colors/Show")
-      expect_inertia.to have_props(flash: {notice: "Color was successfully updated", alert: nil})
+      expect_inertia.to have_exact_flash(notice: "Color was successfully updated")
     end
 
     it "rerenders the edit Inertia component when invalid" do

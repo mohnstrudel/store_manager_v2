@@ -125,7 +125,7 @@ RSpec.describe Product::Shopify::Parser do
         expect(result[:description]).to eq("<p>This is a <strong>premium</strong> collectible statue.</p>")
       end
 
-      it "parses media with positions and timestamps" do
+      it "parses media with positions" do
         result = described_class.parse(api_payload)
 
         expect(result[:media]).to eq([
@@ -134,22 +134,14 @@ RSpec.describe Product::Shopify::Parser do
             id: "gid://shopify/MediaImage/123",
             alt: "Front view",
             url: "https://example.com/image1.jpg",
-            position: 0,
-            store_info: {
-              ext_created_at: "2024-01-01T00:00:00Z",
-              ext_updated_at: "2024-01-02T00:00:00Z"
-            }
+            position: 0
           },
           {
             key: "gid://shopify/MediaImage/456",
             id: "gid://shopify/MediaImage/456",
             alt: "Side view",
             url: "https://example.com/image2.jpg",
-            position: 1,
-            store_info: {
-              ext_created_at: "2024-01-01T00:00:00Z",
-              ext_updated_at: "2024-01-02T00:00:00Z"
-            }
+            position: 1
           }
         ])
       end
@@ -209,6 +201,69 @@ RSpec.describe Product::Shopify::Parser do
         result = described_class.parse(api_payload)
 
         expect(result[:tags]).to eq(["statue", "premium", "exclusive"])
+      end
+    end
+
+    context "with 21 media nodes" do
+      let(:media_nodes) do
+        (0..20).map do |index|
+          {
+            "id" => "gid://shopify/MediaImage/#{index}",
+            "alt" => "View #{index}",
+            "image" => {"url" => "https://example.com/image#{index}.jpg"}
+          }
+        end
+      end
+      let(:many_media_payload) do
+        {
+          "id" => "gid://shopify/Product/12345",
+          "title" => "Test Product",
+          "handle" => "test-product",
+          "variants" => {"edges" => []},
+          "media" => {"nodes" => media_nodes}
+        }
+      end
+
+      it "parses every media node in order" do
+        result = described_class.parse(many_media_payload)
+
+        expect(result[:media].pluck(:id)).to eq(media_nodes.pluck("id"))
+        expect(result[:media].pluck(:position)).to eq((0..20).to_a)
+      end
+    end
+
+    context "with a versioned image URL" do
+      let(:versioned_url) { "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/a15c60ae-4fd0.jpg?v=1794241851" }
+      let(:versioned_payload) do
+        {
+          "id" => "gid://shopify/Product/12345",
+          "title" => "Test Product",
+          "handle" => "test-product",
+          "variants" => {"edges" => []},
+          "media" => {
+            "nodes" => [
+              {"id" => "gid://shopify/MediaImage/1", "alt" => "", "image" => {"url" => versioned_url}},
+              {"id" => "gid://shopify/MediaImage/2", "alt" => "", "image" => nil},
+              {}
+            ]
+          }
+        }
+      end
+
+      it "keeps the whole image.url including its version query" do
+        result = described_class.parse(versioned_payload)
+
+        expect(result[:media].pluck(:url)).to eq([versioned_url, nil, nil])
+      end
+
+      it "keys a node without an image URL by its ID, and a non-image node by its index" do
+        result = described_class.parse(versioned_payload)
+
+        expect(result[:media].pluck(:key, :id)).to eq([
+          ["gid://shopify/MediaImage/1", "gid://shopify/MediaImage/1"],
+          ["gid://shopify/MediaImage/2", "gid://shopify/MediaImage/2"],
+          ["media:2", nil]
+        ])
       end
     end
 

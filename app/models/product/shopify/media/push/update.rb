@@ -8,19 +8,11 @@ class Product::Shopify::Media::Push::Update
   end
 
   def call
-    changed_media = []
-    api_input = []
+    changed_media = existing_media.select { |media| changed?(media) }
+    return if changed_media.empty?
 
-    existing_media.each do |media|
-      next unless relevant_for_update?(media)
-
-      changed_media << media
-      api_input << build_update_input(media)
-    end
-
-    return if api_input.empty?
-
-    api_response = api_client.update_media(api_input)
+    Product::Shopify::Media::Push.ensure_files_stored(changed_media.select { |media| checksum_changed?(media) })
+    api_response = api_client.update_media(changed_media.map { |media| build_update_input(media) })
     update_shopify_store_infos(changed_media:, api_response:)
   end
 
@@ -28,40 +20,23 @@ class Product::Shopify::Media::Push::Update
 
   attr_reader :product, :api_client, :existing_media
 
-  def relevant_for_update?(media)
-    shopify_info = media.shopify_info
-    shopify_info.present? && media_changed?(media, shopify_info)
+  def changed?(media)
+    checksum_changed?(media) || alt_changed?(media)
   end
 
-  def media_changed?(media, shopify_info)
-    media.image.blob.checksum != shopify_info.checksum ||
-      media.alt != shopify_info.alt_text
+  def checksum_changed?(media)
+    media.image.blob.checksum != media.shopify_info.checksum
+  end
+
+  def alt_changed?(media)
+    media.alt.presence != media.shopify_info.alt_text.presence
   end
 
   def build_update_input(media)
-    blob = media.image.blob
-    wait_until_file_is_available(blob)
+    input = {id: media.shopify_info.store_id, alt: media.alt.presence || "#{product.title} image"}
+    return input unless checksum_changed?(media)
 
-    {
-      id: media.shopify_info.store_id,
-      originalSource: blob.url,
-      alt: media.alt.presence || "#{product.title} image"
-    }
-  end
-
-  def wait_until_file_is_available(blob, timeout = 600, interval = 2)
-    deadline = Time.zone.now + timeout
-
-    loop do
-      return if blob.service.exist?(blob.key)
-
-      remaining = deadline - Time.zone.now
-      break if remaining <= 0
-
-      sleep [interval, remaining].min + rand(0.0..0.3)
-    end
-
-    raise "File was not uploaded to R2 in #{timeout} seconds (blob_id: #{blob.id})"
+    input.merge(originalSource: media.image.blob.url)
   end
 
   def update_shopify_store_infos(changed_media:, api_response:)

@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "4.0.7"
+ruby "4.0.9"
 
 gem "rails", "~> 8.x.x"
 gem "sprockets-rails"
@@ -61,11 +61,11 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "parallel_tests"
   gem "prosopite"
-  gem "dotenv"
   gem "js_from_routes", "~> 4.0"
 end
 
 group :development do
+  gem "dotenv"
   gem "web-console"
   gem "rails_live_reload"
   gem "listen"

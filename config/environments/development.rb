@@ -18,6 +18,13 @@ Rails.application.configure do
     []
   end << /[-\w]+\.trycloudflare\.com/
 
+  config.action_cable.allowed_request_origins = [
+    %r{\Ahttps?://localhost:\d+\z},
+    %r{\Ahttps://[-\w]+\.ngrok-free\.app\z},
+    %r{\Ahttps://[-\w]+\.ngrok\.io\z},
+    %r{\Ahttps://[-\w]+\.trycloudflare\.com\z}
+  ]
+
   config.cache_classes = false
 
   config.eager_load = false

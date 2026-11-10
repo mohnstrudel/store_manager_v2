@@ -45,10 +45,31 @@ export function buildPage(overrides: PageOverrides = {}): MockPage {
 
 export const usePage = vi.fn<() => MockPage>(() => buildPage());
 
+type RouterListener = (event: { detail: unknown }) => void;
+
+const routerListeners = new Map<string, Set<RouterListener>>();
+
+function addRouterListener(event: string, listener: RouterListener) {
+  const listeners = routerListeners.get(event) ?? new Set<RouterListener>();
+  routerListeners.set(event, listeners.add(listener));
+
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function emitRouterEvent(event: string, detail: unknown) {
+  for (const listener of routerListeners.get(event) ?? []) listener({ detail });
+}
+
+export function routerListenerCount(event: string) {
+  return routerListeners.get(event)?.size ?? 0;
+}
+
 export const router = {
   delete: vi.fn<(...args: unknown[]) => unknown>(),
   get: vi.fn<(...args: unknown[]) => unknown>(),
-  on: vi.fn<(event: string, callback: () => void) => () => void>(() => () => {}),
+  on: vi.fn<(event: string, listener: RouterListener) => () => void>(addRouterListener),
   patch: vi.fn<(...args: unknown[]) => unknown>(),
   post: vi.fn<(...args: unknown[]) => unknown>(),
   prefetch: vi.fn<(...args: unknown[]) => unknown>(),
@@ -164,6 +185,8 @@ export const Form = forwardRef<FormRef, FormStubProps>(function Form(
 
 export const nextFormErrors = vi.fn<() => Record<string, string> | null>(() => null);
 
+export const nextFormPending = vi.fn<() => boolean>(() => false);
+
 type SubmitOptions = {
   onBefore?: () => unknown;
   onError?: (errors: Record<string, string>) => void;
@@ -175,6 +198,7 @@ type SubmitMethod = "delete" | "get" | "patch" | "post" | "put";
 function useFormStub<TData extends Record<string, unknown>>(initialData: TData) {
   const [data, setDataState] = useState(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [processing, setProcessing] = useState(false);
   const transformPayloadRef = useRef<((data: TData) => unknown) | null>(null);
 
   const submit = (method: SubmitMethod, url: string, options: SubmitOptions = {}) => {
@@ -184,6 +208,11 @@ function useFormStub<TData extends Record<string, unknown>>(initialData: TData) 
       transformPayloadRef.current ? transformPayloadRef.current(data) : data,
       options,
     );
+
+    if (nextFormPending()) {
+      setProcessing(true);
+      return;
+    }
 
     const serverErrors = nextFormErrors();
     if (serverErrors) {
@@ -197,7 +226,7 @@ function useFormStub<TData extends Record<string, unknown>>(initialData: TData) 
   const form = {
     data,
     errors,
-    processing: false,
+    processing,
     clearErrors: (...fields: string[]) => {
       setErrors((currentErrors) => {
         if (fields.length === 0) return {};

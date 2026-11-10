@@ -1,24 +1,27 @@
 # frozen_string_literal: true
 
 class Product::Shopify::Importer
-  attr_reader :parsed, :product
-  private :parsed, :product
+  class Error < StandardError; end
 
-  def self.import(parsed_payload)
+  attr_reader :parsed, :product, :inline_variants, :force
+  private :parsed, :product, :inline_variants, :force
+
+  def self.import(parsed_payload, inline_variants: false, force: false)
     raise ArgumentError, "Parsed payload cannot be blank" if parsed_payload.blank?
 
-    new(parsed_payload).update_or_create
+    new(parsed_payload, inline_variants:, force:).update_or_create
   end
 
-  def initialize(parsed_payload)
+  def initialize(parsed_payload, inline_variants: false, force: false)
     @parsed = parsed_payload
+    @inline_variants = inline_variants
+    @force = force
   end
 
   def update_or_create
     update_or_create_product
-
-    Shopify::PullVariantsJob.perform_later(product, converted_variants) if parsed[:variants].present?
-    Shopify::ImportMediaJob.perform_later(product, parsed[:media]) if parsed[:media]
+    import_variants
+    import_media if parsed[:media]
 
     product
   end
@@ -52,6 +55,8 @@ class Product::Shopify::Importer
         )
       end
     end
+  rescue ActiveRecord::RecordInvalid => e
+    handle_record_invalid(e)
   end
 
   def find_or_initialize_product
@@ -107,6 +112,23 @@ class Product::Shopify::Importer
     nil
   end
 
+  def handle_record_invalid(error)
+    model_name = error.record.class.name
+    detailed_errors = error.record.errors.full_messages.join(", ")
+
+    raise Error, "Failed to process #{model_name}: #{detailed_errors}"
+  end
+
+  def import_variants
+    return if parsed[:variants].blank?
+
+    if inline_variants
+      Variant::Shopify::Importer.import_all(product, converted_variants)
+    else
+      Shopify::PullVariantsJob.perform_later(product, converted_variants)
+    end
+  end
+
   def converted_variants
     return parsed[:variants] unless parsed[:variants].any? { |variant| variant[:selling_price].present? }
 
@@ -118,5 +140,11 @@ class Product::Shopify::Importer
         usd_conversion_date: conversion.effective_date
       )
     end
+  end
+
+  def import_media
+    return if !force && product.shopify_media_unchanged?(parsed[:media])
+
+    Shopify::ImportMediaJob.perform_later(product, parsed[:media], force:)
   end
 end

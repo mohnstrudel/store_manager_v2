@@ -33,8 +33,8 @@ class Config < ApplicationRecord
     current.update(sales_hook_status: :disabled)
   end
 
-  def self.update_shopify_products_sync_time
-    current.update(shopify_products_sync: Time.current)
+  def self.update_shopify_products_sync_time(time)
+    current.update(shopify_products_sync: time)
   end
 
   def self.shopify_products_sync_time
@@ -45,8 +45,8 @@ class Config < ApplicationRecord
     current.shopify_products_sync
   end
 
-  def self.update_shopify_sales_sync_time
-    current.update(shopify_sales_sync: Time.current)
+  def self.update_shopify_sales_sync_time(time)
+    current.update(shopify_sales_sync: time)
   end
 
   def self.shopify_sales_sync_time

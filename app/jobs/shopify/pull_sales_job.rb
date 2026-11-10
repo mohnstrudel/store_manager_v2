@@ -2,14 +2,49 @@
 
 module Shopify
   class PullSalesJob < Shopify::BasePullJob
+    discard_on(Shopify::Pull::Failed) do |_job, error|
+      event = Sentry.capture_exception(error)
+
+      error.failures.each do |failure|
+        Sale::ImportFailure.record_safely(
+          store_name: "shopify",
+          store_order_id: failure.store_id,
+          message: failure.message,
+          sentry_event_id: event&.event_id,
+          failed_at: failure.failed_at
+        )
+      end
+    end
+
     private
+
+    def last_sync_at
+      Config.shopify_sales_sync_at
+    end
 
     def pull_class
       Sale::Shopify::Pull
     end
 
-    def handle_terminal_page
+    def stamp_sync(started_at)
+      Config.update_shopify_sales_sync_time(started_at)
+    end
+
+    def handle_terminal_page(updated_since:)
       Seal::SyncPaymentPlansJob.perform_later
+      retry_unresolved_failures(updated_since:) if updated_since
+    end
+
+    def retry_unresolved_failures(updated_since:)
+      Sale::ImportFailure.shopify.unresolved.last_failed_before(updated_since).find_each(&:pull_later)
+    end
+
+    def job_title
+      "Shopify sales pull"
+    end
+
+    def failure_notification(_error)
+      {message: "Some Shopify orders could not be pulled.", link: broken_sales_link}
     end
   end
 end

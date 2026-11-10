@@ -13,9 +13,11 @@ import DetailsChevron from "@/components/DetailsChevron";
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import type { WarehouseOption } from "@/types/warehouse";
+import { countLabel } from "@/utils/countLabel";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
 
+import UnlinkedVariantMark from "../components/UnlinkedVariantMark";
 import type { SaleShowPurchaseItemRecord, SaleShowSaleItemRecord } from "../types";
 
 type ItemsProps = {
@@ -114,6 +116,7 @@ function SaleItemRow({
         <Link className="link no-underline font-semibold" href={saleItem.product_path} prefetch>
           {saleItem.title}
         </Link>
+        {saleItem.shopify_variant_unlinked && <UnlinkedVariantMark />}
         {hasPurchaseItems && (
           <menu>
             {saleItem.purchase_items.map((purchaseItem) => (
@@ -124,7 +127,7 @@ function SaleItemRow({
         {missingPurchasesCount > 0 && (
           <mark className="block uppercase tracking-wide text-xs w-fit mt-2 -ml-1">
             <span className="font-semibold">
-              MISSING {missingPurchasesCount} PURCHASE{missingPurchasesCount === 1 ? "" : "S"}
+              MISSING {countLabel(missingPurchasesCount, "purchase").toUpperCase()}
             </span>
           </mark>
         )}

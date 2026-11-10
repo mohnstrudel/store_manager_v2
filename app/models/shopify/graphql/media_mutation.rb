@@ -9,7 +9,7 @@ module Shopify
             productUpdate(product: $product, media: $media) {
               product {
                 id
-                media(first: 20) {
+                media(first: 250) {
                   nodes {
                     ... on MediaImage {
                       id
@@ -25,20 +25,6 @@ module Shopify
               userErrors {
                 field
                 message
-              }
-            }
-          }
-        GQL
-      end
-
-      def self.status_query
-        <<~GQL
-          query($id: ID!) {
-            node(id: $id) {
-              ... on MediaImage {
-                id
-                status
-                fileStatus
               }
             }
           }

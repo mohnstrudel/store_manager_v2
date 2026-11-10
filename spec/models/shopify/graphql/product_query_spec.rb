@@ -21,6 +21,51 @@ RSpec.describe Shopify::Graphql::ProductQuery do
       expect(query).to include("variants")
       expect(query).to include("edges")
     end
+
+    it "requests every media a product can have and up to 250 variants" do
+      query = described_class.by_id
+
+      aggregate_failures do
+        expect(query).to include("media(first: 250)")
+        expect(query).to include("variants(first: 250)")
+      end
+    end
+
+    it "asks whether variants were truncated" do
+      expect(described_class.by_id).to match(
+        /variants\(first: 250\) \{\s*pageInfo \{\s*hasNextPage\s*\}\s*edges \{\s*node \{/
+      )
+    end
+  end
+
+  describe ".media_by_id" do
+    let(:query) { described_class.media_by_id }
+
+    it "asks for the product's media and nothing else" do
+      aggregate_failures do
+        expect(query).to include("query ProductMediaById", "product(id: $id)", "media(first: 250)", "... on MediaImage")
+        expect(query).not_to include("variants")
+        expect(query).not_to include("title")
+        expect(query).not_to include("image {")
+      end
+    end
+
+    it "asks for the fields a media push pairs, waits on, and records" do
+      expect(query).to match(/id\s+alt\s+status\s+createdAt\s+updatedAt/)
+    end
+  end
+
+  describe ".options_by_id" do
+    let(:query) { described_class.options_by_id }
+
+    it "asks for the names of the product's options and nothing else" do
+      aggregate_failures do
+        expect(query).to include("query ProductOptionsById", "product(id: $id)")
+        expect(query).to match(/options\s*\{\s*name\s*\}/)
+        expect(query).not_to include("variants")
+        expect(query).not_to include("media")
+      end
+    end
   end
 
   describe ".list" do
@@ -40,6 +85,51 @@ RSpec.describe Shopify::Graphql::ProductQuery do
       expect(query).to include("hasNextPage")
       expect(query).to include("endCursor")
     end
+
+    it "requests every media a product can have and up to 100 variants" do
+      query = described_class.list
+
+      aggregate_failures do
+        expect(query).to include("media(first: 250)")
+        expect(query).to include("variants(first: 100)")
+        expect(query).not_to include("variants(first: 250)")
+      end
+    end
+
+    it "asks whether variants were truncated" do
+      expect(described_class.list).to match(
+        /variants\(first: 100\) \{\s*pageInfo \{\s*hasNextPage\s*\}\s*edges \{\s*node \{/
+      )
+    end
+
+    context "without updated_since" do
+      it "lists the newest created products first with no filter" do
+        query = described_class.list
+
+        expect(query).to include("sortKey: CREATED_AT")
+        expect(query).to include("reverse: true")
+        expect(query).not_to include("UPDATED_AT")
+        expect(query).not_to include("updated_at")
+      end
+    end
+
+    context "with updated_since" do
+      let(:updated_since) { ActiveSupport::TimeZone["Asia/Singapore"].local(2026, 11, 10, 17, 45) }
+      let(:query) { described_class.list(updated_since:) }
+
+      it "filters to products updated at or after that moment in UTC and sorts by update time" do
+        expect(query).to include(%(query: "updated_at:>='2026-11-10T09:45:00Z'"))
+        expect(query).to include("sortKey: UPDATED_AT")
+        expect(query).not_to include("CREATED_AT")
+        expect(query).not_to include("reverse")
+      end
+
+      it "filters on the product alone and keeps the same selection" do
+        expect(query.scan("updated_at:").size).to eq(1)
+        expect(query).to include("media(first: 250)")
+        expect(query).to include("variants(first: 100)")
+      end
+    end
   end
 
   describe "PRODUCT_FIELDS" do
@@ -57,10 +147,15 @@ RSpec.describe Shopify::Graphql::ProductQuery do
       expect(described_class::PRODUCT_FIELDS).to include("MediaImage")
     end
 
+    it "leaves the variants connection to each query" do
+      expect(described_class::PRODUCT_FIELDS).not_to include("variants")
+    end
+  end
+
+  describe "VARIANT_CONNECTION_FIELDS" do
     it "includes variant fields" do
-      expect(described_class::PRODUCT_FIELDS).to include("variants")
-      expect(described_class::PRODUCT_FIELDS).to include("sku")
-      expect(described_class::PRODUCT_FIELDS).to include("selectedOptions")
+      expect(described_class::VARIANT_CONNECTION_FIELDS).to include("sku")
+      expect(described_class::VARIANT_CONNECTION_FIELDS).to include("selectedOptions")
     end
   end
 end

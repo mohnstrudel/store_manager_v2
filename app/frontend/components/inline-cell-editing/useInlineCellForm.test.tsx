@@ -16,7 +16,7 @@ describe("useInlineCellForm", () => {
     await user.click(screen.getByRole("button", { name: "Save value" }));
 
     expect(router.patch).toHaveBeenCalledWith(
-      "/variant_assignment_issues/purchases/7",
+      "/broken_sales/purchases/7",
       {
         purchase: { variant_id: "11" },
         return_to: "/",
@@ -33,7 +33,7 @@ function Harness() {
   const form = useInlineCellForm({
     editedRecord: { id: 7, variant_id: 11 },
     attributeName: "variant_id",
-    route: routes.variantAssignmentIssuesPurchases.update,
+    route: routes.brokenSalesPurchases.update,
     collection: "issues",
     paramKey: "purchase",
     idParam: "id",

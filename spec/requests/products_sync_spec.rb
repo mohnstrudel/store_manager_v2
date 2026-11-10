@@ -10,50 +10,52 @@ RSpec.describe "Products Sync API" do
   end
 
   describe "POST /products/pull" do
-    context "with limit parameter" do
-      it "converts string limit to integer before enqueuing job", :aggregate_failures do
-        allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: 100)
-        allow(Config).to receive(:update_shopify_products_sync_time)
+    it "enqueues a full pull when no scope is given", :aggregate_failures do
+      post products_pull_path
 
-        post products_pull_path(limit: "100")
-
-        expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: 100)
-        expect(response).to redirect_to(products_path)
-        expect(flash[:notice]).to include(message: "Success! Visit")
-      end
+      expect(Shopify::PullProductsJob).to have_been_enqueued.with(changes_only: false, requested_by: admin)
+      expect(response).to redirect_to(products_path)
+      expect(flash[:notice]).to include(message: start_with("Started. You'll get a notification"))
     end
 
-    context "without limit parameter" do
-      it "enqueues job with nil limit", :aggregate_failures do
-        allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: nil)
-        allow(Config).to receive(:update_shopify_products_sync_time)
+    it "enqueues a changes pull for scope=changes", :aggregate_failures do
+      post products_pull_path(scope: "changes")
 
-        post products_pull_path
+      expect(Shopify::PullProductsJob).to have_been_enqueued.with(changes_only: true, requested_by: admin)
+      expect(response).to redirect_to(products_path)
+      expect(flash[:notice]).to include(message: start_with("Started. You'll get a notification"))
+    end
 
-        expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: nil)
-        expect(response).to redirect_to(products_path)
-        expect(flash[:notice]).to include(message: "Success! Visit")
-      end
+    it "pulls everything when only the retired limit param is sent" do
+      post products_pull_path(limit: "100")
+
+      expect(Shopify::PullProductsJob).to have_been_enqueued.with(changes_only: false, requested_by: admin)
+    end
+
+    it "leaves the stored sync time to the pull itself" do
+      Config.update_shopify_products_sync_time(Time.utc(2026, 11, 10, 10))
+
+      expect { post products_pull_path(scope: "changes") }.not_to change(Config, :shopify_products_sync_at)
     end
   end
 
   describe "POST /products/:product_id/shopify_pull" do
     context "when product is published to Shopify" do
       before do
-        allow(Shopify::PullProductJob).to receive(:perform_later).with(product.shopify_info.store_id)
+        allow(Shopify::PullProductJob).to receive(:perform_later).with(product.shopify_info.store_id, requested_by: admin)
       end
 
       it "enqueues the Shopify pull product job" do
         post product_shopify_pull_path(product)
 
-        expect(Shopify::PullProductJob).to have_received(:perform_later).with(product.shopify_info.store_id)
+        expect(Shopify::PullProductJob).to have_received(:perform_later).with(product.shopify_info.store_id, requested_by: admin)
       end
 
       it "redirects to products path with notice", :aggregate_failures do # rubocop:todo RSpec/MultipleExpectations
         post product_shopify_pull_path(product)
 
         expect(response).to redirect_to(product_path(product))
-        expect(flash[:notice]).to eq("Product is being fetched from Shopify")
+        expect(flash[:notice]).to eq("Started pulling this product from Shopify. You'll get a notification when it finishes.")
       end
     end
 

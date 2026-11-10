@@ -47,7 +47,6 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
       # rubocop:enable RSpec/VerifiedDoubles
       allow(mock_client).to receive(:fetch_orders).and_return(api_response)
       allow(Shopify::Api::Client).to receive(:new).and_return(mock_client)
-      allow(Config).to receive(:update_shopify_sales_sync_time)
     end
 
     it "creates sales from Shopify order data" do
@@ -91,14 +90,43 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
 
       it "imports the rest of the page, schedules the next page, then reports the failure without retrying" do
         expect { described_class.perform_now }.to change(Sale, :count).by(1)
-          .and have_enqueued_job(described_class).with(cursor: "cursor-1")
+          .and have_enqueued_job(described_class).with(hash_including(cursor: "cursor-1"))
 
         expect(Sentry).to have_received(:capture_exception).with(
           an_instance_of(Shopify::Pull::Failed)
             .and(having_attributes(
-              failures: [Shopify::Pull::Failure.new(store_id: "gid://shopify/Order/999", message: "Failed to process SaleItem: Variant must be selected")],
+              failures: [having_attributes(store_id: "gid://shopify/Order/999", message: "Failed to process SaleItem: Variant must be selected")],
               message: /1 Shopify item\(s\) failed to import: gid:\/\/shopify\/Order\/999: Failed to process SaleItem/
             ))
+        )
+        expect(enqueued_jobs.count { |enqueued| enqueued["job_class"] == described_class.name }).to eq(1)
+      end
+
+      it "records the failed order with the Sentry event id and failure time" do
+        sale = create(:sale, shopify_store_id: "gid://shopify/Order/999")
+        allow(Sentry).to receive(:capture_exception).and_return(instance_double(Sentry::ErrorEvent, event_id: "event-1"))
+
+        freeze_time do
+          described_class.perform_now
+
+          expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id: "gid://shopify/Order/999")).to have_attributes(
+            sale:,
+            message: "Failed to process SaleItem: Variant must be selected",
+            sentry_event_id: "event-1",
+            last_failed_at: Time.current
+          )
+        end
+      end
+
+      it "reports a recording failure and stays discarded with one next-page job" do
+        recording_error = ActiveRecord::StatementInvalid.new("cannot write")
+        allow(Sale::ImportFailure).to receive(:record).and_raise(recording_error)
+
+        expect { described_class.perform_now }.not_to raise_error
+
+        expect(Sentry).to have_received(:capture_exception).with(
+          recording_error,
+          extra: {store_name: "shopify", store_order_id: "gid://shopify/Order/999"}
         )
         expect(enqueued_jobs.count { |enqueued| enqueued["job_class"] == described_class.name }).to eq(1)
       end
@@ -109,6 +137,37 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
 
       it "updates existing sale instead of creating duplicate" do
         expect { job.perform }.not_to change(Sale, :count)
+      end
+    end
+
+    context "when Shopify throttles the fetch of a product an order references" do
+      let(:order_with_uncached_product) do
+        api_response[:items].first.merge(
+          "lineItems" => {
+            "nodes" => [{
+              "id" => "gid://shopify/LineItem/1",
+              "title" => "Star Wars - Princess Leia | 1:4 Resin Statue",
+              "quantity" => 1,
+              "variant" => {"id" => "gid://shopify/ProductVariant/66", "product" => {"id" => "gid://shopify/Product/55"}},
+              "product" => {"id" => "gid://shopify/Product/55"}
+            }]
+          }
+        )
+      end
+      let(:client) { instance_double(Shopify::Api::Client, fetch_orders: {items: [order_with_uncached_product], has_next_page: true, end_cursor: "cursor-1"}) }
+
+      before do
+        allow(client).to receive(:fetch_product).and_raise(Shopify::Api::Client::Throttled)
+        allow(Shopify::Api::Client).to receive(:new).and_return(client)
+      end
+
+      it "retries the same page instead of counting the order as a failure or moving to the next page" do
+        expect { described_class.perform_now(cursor: "cursor-0") }
+          .to have_enqueued_job(described_class).with(cursor: "cursor-0")
+
+        expect(enqueued_jobs.count { |enqueued| enqueued["job_class"] == described_class.name }).to eq(1)
+        expect(Sale::ImportFailure.count).to eq(0)
+        expect(Sale.count).to eq(0)
       end
     end
   end
@@ -122,7 +181,6 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
       # rubocop:enable RSpec/VerifiedDoubles
       allow(mock_client).to receive(:fetch_orders).and_return(api_response)
       allow(Shopify::Api::Client).to receive(:new).and_return(mock_client)
-      allow(Config).to receive(:update_shopify_sales_sync_time)
       allow(Seal::SyncPaymentPlansJob).to receive(:perform_later)
     end
 
@@ -140,12 +198,14 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
 
         expect(Seal::SyncPaymentPlansJob).not_to have_received(:perform_later)
       end
+    end
 
-      it "enqueues Seal for a limited pull even though another page remains" do
-        job.perform(limit: 3)
+    it "enqueues one Seal sync after the last page of a changes pull" do
+      Config.update_shopify_sales_sync_time(Time.utc(2026, 11, 10, 10))
 
-        expect(Seal::SyncPaymentPlansJob).to have_received(:perform_later)
-      end
+      job.perform(changes_only: true)
+
+      expect(Seal::SyncPaymentPlansJob).to have_received(:perform_later).once
     end
 
     context "when import fails" do
@@ -163,25 +223,128 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     end
   end
 
-  describe "limited pull" do
-    let(:api_response) do
-      {
-        items: [],
-        has_next_page: false,
-        end_cursor: nil
-      }
+  describe "sync time" do
+    let(:client) { instance_double(Shopify::Api::Client) }
+    let(:started_at) { Time.utc(2026, 11, 10, 12) }
+
+    before do
+      allow(Shopify::Api::Client).to receive(:new).and_return(client)
+      allow(client).to receive(:fetch_orders).and_return(items: [], has_next_page: false, end_cursor: nil)
     end
 
-    it "requests only the given batch size through the normal query, parser, and importer" do
-      # rubocop:disable RSpec/VerifiedDoubles
-      mock_client = spy("Shopify::Api::Client")
-      # rubocop:enable RSpec/VerifiedDoubles
-      allow(mock_client).to receive(:fetch_orders).and_return(api_response)
-      allow(Shopify::Api::Client).to receive(:new).and_return(mock_client)
+    it "stores the start of a full pull as the sales sync time on its last page and leaves the products sync time alone" do
+      travel_to(started_at) { described_class.perform_now }
 
-      job.perform(limit: 3)
+      expect(Config.shopify_sales_sync_at).to eq(started_at)
+      expect(Config.shopify_products_sync_at).to be_nil
+    end
 
-      expect(mock_client).to have_received(:fetch_orders).with(cursor: nil, batch_size: 3)
+    it "fetches the orders updated since 15 minutes before the stored sales sync time on a changes pull" do
+      Config.update_shopify_sales_sync_time(Time.utc(2026, 11, 10, 10))
+      Config.update_shopify_products_sync_time(Time.utc(2026, 11, 10, 11))
+
+      travel_to(started_at) { described_class.perform_now(changes_only: true) }
+
+      expect(client).to have_received(:fetch_orders)
+        .with(cursor: nil, batch_size: 250, updated_since: Time.utc(2026, 11, 10, 9, 45))
+      expect(Config.shopify_sales_sync_at).to eq(started_at)
+    end
+
+    it "fetches every order when a changes pull has no stored sales sync time" do
+      described_class.perform_now(changes_only: true)
+
+      expect(client).to have_received(:fetch_orders).with(cursor: nil, batch_size: 250, updated_since: nil)
+    end
+
+    it "stores the start time although an order on the last page failed to import" do
+      allow(client).to receive(:fetch_orders)
+        .and_return(items: [{"id" => "gid://shopify/Order/999"}], has_next_page: false, end_cursor: nil)
+      allow(Sale::Shopify::Parser).to receive(:parse).and_return({})
+      allow(Sale::Shopify::Importer).to receive(:import).and_raise(Sale::Shopify::Importer::Error, "Variant must be selected")
+      allow(Sentry).to receive(:capture_exception)
+
+      travel_to(started_at) { described_class.perform_now }
+
+      expect(Config.shopify_sales_sync_at).to eq(started_at)
+      expect(Sale::ImportFailure.shopify.unresolved.pluck(:store_order_id)).to eq(["gid://shopify/Order/999"])
+    end
+
+    it "stores nothing before the last page" do
+      allow(client).to receive(:fetch_orders).and_return(items: [], has_next_page: true, end_cursor: "cursor-1")
+
+      described_class.perform_now
+
+      expect(Config.shopify_sales_sync_at).to be_nil
+    end
+  end
+
+  describe "retrying unresolved import failures" do
+    let(:client) { instance_double(Shopify::Api::Client) }
+    let(:last_page) { {items: [], has_next_page: false, end_cursor: nil} }
+
+    def record_failure(store_name, store_order_id, failed_at: Time.zone.local(2026, 11, 10, 8))
+      Sale::ImportFailure.record(
+        store_name:, store_order_id:, message: "boom", sentry_event_id: nil, failed_at:
+      )
+    end
+
+    def enqueued_arguments(job_class)
+      enqueued_jobs.select { |enqueued| enqueued["job_class"] == job_class.name }.pluck("arguments")
+    end
+
+    before do
+      allow(Shopify::Api::Client).to receive(:new).and_return(client)
+      allow(client).to receive(:fetch_orders).and_return(last_page)
+      Config.update_shopify_sales_sync_time(Time.utc(2026, 11, 10, 10))
+      record_failure("shopify", "gid://shopify/Order/1")
+      record_failure("shopify", "gid://shopify/Order/2")
+      record_failure("shopify", "gid://shopify/Order/3")
+      Sale::ImportFailure.resolve(store_name: "shopify", store_order_id: "gid://shopify/Order/3")
+      record_failure("woo", "77")
+    end
+
+    it "enqueues one single-order pull per unresolved Shopify failure on the last page of a changes pull" do
+      described_class.perform_now(changes_only: true)
+
+      expect(enqueued_arguments(Shopify::PullSaleJob))
+        .to contain_exactly(["gid://shopify/Order/1"], ["gid://shopify/Order/2"])
+    end
+
+    it "skips a failure recorded since the window the changes pull covers opened" do
+      record_failure("shopify", "gid://shopify/Order/4", failed_at: Time.zone.local(2026, 11, 10, 9, 50))
+
+      described_class.perform_now(changes_only: true)
+
+      expect(enqueued_arguments(Shopify::PullSaleJob))
+        .to contain_exactly(["gid://shopify/Order/1"], ["gid://shopify/Order/2"])
+    end
+
+    it "enqueues no Woo pull for the Woo failure" do
+      described_class.perform_now(changes_only: true)
+
+      expect(enqueued_arguments(Woo::PullSalesJob)).to be_empty
+    end
+
+    it "enqueues no retries before the last page" do
+      allow(client).to receive(:fetch_orders).and_return(last_page.merge(has_next_page: true, end_cursor: "cursor-1"))
+
+      described_class.perform_now(changes_only: true)
+
+      expect(enqueued_arguments(Shopify::PullSaleJob)).to be_empty
+    end
+
+    it "enqueues no retries for a full pull, which reads every order anyway" do
+      described_class.perform_now
+
+      expect(enqueued_arguments(Shopify::PullSaleJob)).to be_empty
+    end
+
+    it "enqueues no retries when a changes pull has no stored sync time and so reads every order" do
+      Config.update_shopify_sales_sync_time(nil)
+
+      described_class.perform_now(changes_only: true)
+
+      expect(enqueued_arguments(Shopify::PullSaleJob)).to be_empty
     end
   end
 
