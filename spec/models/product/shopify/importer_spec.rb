@@ -61,6 +61,26 @@ RSpec.describe Product::Shopify::Importer do
       expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media], force: true)
     end
 
+    it "does not queue a media import when the product's images are unchanged" do
+      allow(Shopify::PullVariantsJob).to receive(:perform_later)
+      allow(Shopify::ImportMediaJob).to receive(:perform_later)
+      allow_any_instance_of(Product).to receive(:shopify_media_unchanged?).with(parsed_product[:media]).and_return(true) # rubocop:disable RSpec/AnyInstance
+
+      described_class.import(parsed_product)
+
+      expect(Shopify::ImportMediaJob).not_to have_received(:perform_later)
+    end
+
+    it "queues a forced media import even when the images are unchanged" do
+      allow(Shopify::PullVariantsJob).to receive(:perform_later)
+      allow(Shopify::ImportMediaJob).to receive(:perform_later)
+      allow_any_instance_of(Product).to receive(:shopify_media_unchanged?).and_return(true) # rubocop:disable RSpec/AnyInstance
+
+      product = described_class.import(parsed_product, force: true)
+
+      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media], force: true)
+    end
+
     it "captures the EUR-to-USD rate before enqueuing priced variants" do
       allow(Shopify::PullVariantsJob).to receive(:perform_later)
       conversion = ExchangeRate::Conversion.new(

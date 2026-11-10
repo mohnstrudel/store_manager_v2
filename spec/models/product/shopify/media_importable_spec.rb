@@ -24,6 +24,76 @@ RSpec.describe Product::Shopify::MediaImportable do
     media.reload.image.blob.checksum
   end
 
+  describe "#shopify_media_unchanged?" do
+    def unchanged?(*nodes)
+      product.shopify_media_unchanged?(nodes)
+    end
+
+    before do
+      pulled_media("one", number: 1, source_url: cdn_url("one"), alt: "One", position: 0)
+      pulled_media("two", number: 2, source_url: cdn_url("two"), alt: "Two", position: 1)
+    end
+
+    let(:one) { media_node(1, name: "one", alt: "One", position: 0) }
+    let(:two) { media_node(2, name: "two", alt: "Two", position: 1) }
+
+    it "is true when every image matches by ID, URL, alt, and position" do
+      expect(unchanged?(one, two)).to be(true)
+    end
+
+    it "ignores non-image nodes" do
+      expect(unchanged?(one, two, non_image_node(2))).to be(true)
+    end
+
+    it "is false when an image URL changed" do
+      expect(unchanged?(one, media_node(2, name: "two", version: 2, alt: "Two", position: 1))).to be(false)
+    end
+
+    it "is false when an alt changed" do
+      expect(unchanged?(one, two.merge(alt: "New"))).to be(false)
+    end
+
+    it "is false when the order changed" do
+      expect(unchanged?(two.merge(position: 0), one.merge(position: 1))).to be(false)
+    end
+
+    it "is false when Shopify has a new image" do
+      expect(unchanged?(one, two, media_node(3, name: "three", position: 2))).to be(false)
+    end
+
+    it "is false when Shopify removed an image" do
+      expect(unchanged?(one)).to be(false)
+    end
+
+    it "is false when an image is not ready yet" do
+      expect(unchanged?(one, two.merge(url: nil))).to be(false)
+    end
+
+    it "is false when a row has no stored URL" do
+      product.media.find_by!(position: 1).shopify_info.update!(source_url: nil)
+
+      expect(unchanged?(one, two)).to be(false)
+    end
+
+    it "is false when a row has no Shopify ID" do
+      product.media.find_by!(position: 1).shopify_info.destroy!
+
+      expect(unchanged?(one, two)).to be(false)
+    end
+
+    it "is false when a row has no attached image" do
+      product.media.find_by!(position: 1).image.purge
+
+      expect(unchanged?(one, two)).to be(false)
+    end
+
+    it "is true when Shopify and the product both have no images" do
+      product.media.destroy_all
+
+      expect(unchanged?).to be(true)
+    end
+  end
+
   describe "#import_shopify_media" do
     it "clears local media when parsed_media is blank" do
       create_list(:media, 2, mediaable: product)

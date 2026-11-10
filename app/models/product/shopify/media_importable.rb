@@ -13,6 +13,13 @@ module Product::Shopify::MediaImportable
     downloaded_files&.close_downloads
   end
 
+  def shopify_media_unchanged?(parsed_media)
+    images = parsed_media.reject { |item| item[:id].blank? && item[:url].blank? }
+    return false if images.any? { |item| item[:id].blank? || item[:url].blank? }
+
+    stored_shopify_images.tally == images.map { |item| item.values_at(:id, :url, :alt, :position) }.tally
+  end
+
   private
 
   def remove_obsolete_shopify_media(parsed_media:, items_to_download:, downloaded_files:)
@@ -32,5 +39,15 @@ module Product::Shopify::MediaImportable
       .left_joins(:shopify_info)
       .where(store_info[:store_id].eq(nil).or(store_info[:store_id].not_in(store_ids)))
       .where.not(active_storage_blobs: {checksum: downloaded_checksums})
+  end
+
+  def stored_shopify_images
+    media.left_joins(:shopify_info, :image_attachment).pluck(
+      StoreInfo.arel_table[:store_id],
+      StoreInfo.arel_table[:source_url],
+      Media.arel_table[:alt],
+      Media.arel_table[:position],
+      ActiveStorage::Attachment.arel_table[:id]
+    ).map { |*image, attachment_id| attachment_id ? image : [*image, :unattached] }
   end
 end

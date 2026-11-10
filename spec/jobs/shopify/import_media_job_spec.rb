@@ -166,4 +166,8 @@ RSpec.describe Shopify::ImportMediaJob do
       end
     end
   end
+
+  it "keeps its job status for 10 minutes instead of the default 2 hours" do
+    expect(job.expiration).to eq(10.minutes.to_i)
+  end
 end

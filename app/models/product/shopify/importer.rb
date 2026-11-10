@@ -21,7 +21,7 @@ class Product::Shopify::Importer
   def update_or_create
     update_or_create_product
     import_variants
-    Shopify::ImportMediaJob.perform_later(product, parsed[:media], force:) if parsed[:media]
+    import_media if parsed[:media]
 
     product
   end
@@ -140,5 +140,11 @@ class Product::Shopify::Importer
         usd_conversion_date: conversion.effective_date
       )
     end
+  end
+
+  def import_media
+    return if !force && product.shopify_media_unchanged?(parsed[:media])
+
+    Shopify::ImportMediaJob.perform_later(product, parsed[:media], force:)
   end
 end
