@@ -41,6 +41,10 @@ describe("Notifications", () => {
         "href",
         "/jobs/statuses",
       );
+      expect(screen.getByRole("link", { name: "jobs dashboard" })).toHaveAttribute(
+        "target",
+        "_blank",
+      );
     });
 
     it("shows an alert flashed with the first page load", async () => {

@@ -68,7 +68,7 @@ function SyncActions({ onFetchChanges, onFetchEverything }: SyncActionsProps) {
         </button>
       </li>
       <li>
-        <a className="w-full h-15" href="/jobs/statuses">
+        <a className="w-full h-15" href="/jobs/statuses" rel="noopener noreferrer" target="_blank">
           Track Jobs Progress
         </a>
       </li>

@@ -15,11 +15,15 @@ export default function NotificationContent({
       {link ? (
         <>
           {" "}
-          <a className="link" href={link.href}>
+          <a className="link" href={link.href} {...newTabProps(link.href)}>
             {link.label}
           </a>
         </>
       ) : null}
     </>
   );
+}
+
+function newTabProps(href: string) {
+  return href.startsWith("/jobs") ? { rel: "noopener noreferrer", target: "_blank" } : {};
 }
