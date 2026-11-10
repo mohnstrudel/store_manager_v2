@@ -123,7 +123,7 @@ class BrokenSalesController < ApplicationController
   def import_failures_by_sale_id(view, records)
     return {} unless view == "orders"
 
-    Sale::ImportFailure.unresolved.where(sale_id: records.map(&:sale_id)).index_by(&:sale_id)
+    Sale::ImportFailure.unresolved.includes(:sale).where(sale_id: records.map(&:sale_id)).index_by(&:sale_id)
   end
 
   def authorize_resource
