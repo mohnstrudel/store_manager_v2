@@ -12,9 +12,9 @@ RSpec.describe "BrokenSales::Backfills API" do
 
         post broken_sales_backfill_path
 
-        expect(Variant::AssignmentBackfillJob).to have_received(:perform_later)
+        expect(Variant::AssignmentBackfillJob).to have_received(:perform_later).with(requested_by: admin)
         expect(response).to redirect_to(broken_sales_path)
-        expect(flash[:notice]).to include(message: "Success! Visit")
+        expect(flash[:notice]).to include(message: start_with("Started. You'll get a notification"))
       end
     end
 
@@ -27,7 +27,7 @@ RSpec.describe "BrokenSales::Backfills API" do
         post broken_sales_backfill_path
 
         expect(Variant::AssignmentBackfillJob).not_to have_received(:perform_later)
-        expect(flash[:error]).to include("permission")
+        expect(flash[:alert]).to include("permission")
       end
     end
   end

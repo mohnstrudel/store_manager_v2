@@ -100,15 +100,15 @@ RSpec.describe "Dashboard" do
 
   describe "POST /pull-last-orders" do
     it "enqueues the Woo sync, re-enables the sales hook, and redirects back with a notice", :aggregate_failures do
-      allow(Woo::PullSalesJob).to receive(:perform_later).with(pages: 2)
+      allow(Woo::PullSalesJob).to receive(:perform_later).with(pages: 2, requested_by: admin)
       allow(Config).to receive(:enable_sales_hook)
 
       post last_orders_pull_path, headers: {"Referer" => "http://www.example.com/dashboard"}
 
-      expect(Woo::PullSalesJob).to have_received(:perform_later).with(pages: 2)
+      expect(Woo::PullSalesJob).to have_received(:perform_later).with(pages: 2, requested_by: admin)
       expect(Config).to have_received(:enable_sales_hook)
       expect(response).to redirect_to("http://www.example.com/dashboard")
-      expect(flash[:notice]).to eq("Started getting missing sales. It'll take around 5–10 minutes")
+      expect(flash[:notice]).to eq("Started getting missing sales. It takes about 5–10 minutes. You'll get a notification when it finishes.")
     end
   end
 end

@@ -6,8 +6,8 @@ module Products
 
     def create
       notice = if @product.shopify_info&.store_id&.present?
-        Shopify::PullProductJob.perform_later(@product.shopify_info.store_id)
-        "Product is being fetched from Shopify"
+        Shopify::PullProductJob.perform_later(@product.shopify_info.store_id, requested_by: Current.user)
+        "Started pulling this product from Shopify. You'll get a notification when it finishes."
       else
         "Product has not been published to Shopify yet"
       end

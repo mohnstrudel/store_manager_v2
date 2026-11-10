@@ -38,5 +38,13 @@ module Shopify
     def retry_unresolved_failures
       Sale::ImportFailure.shopify.unresolved.find_each(&:pull_later)
     end
+
+    def job_title
+      "Shopify sales pull"
+    end
+
+    def failure_notification(_error)
+      {message: "Some Shopify orders could not be pulled.", link: broken_sales_link}
+    end
   end
 end

@@ -15,5 +15,13 @@ module Shopify
     def stamp_sync(started_at)
       Config.update_shopify_products_sync_time(started_at)
     end
+
+    def job_title
+      "Shopify products pull"
+    end
+
+    def failure_notification(_error)
+      {message: "Some Shopify products could not be pulled.", link: jobs_dashboard_link}
+    end
   end
 end

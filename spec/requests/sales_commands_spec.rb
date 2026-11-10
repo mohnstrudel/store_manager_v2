@@ -158,14 +158,14 @@ RSpec.describe "Sales commands" do
       post sale_pull_path(sale)
 
       expect(Woo::PullSalesJob).to have_received(:set).with(wait: 90.seconds)
-      expect(Shopify::PullSaleJob).to have_received(:perform_later).with(sale.shopify_store_id)
+      expect(Shopify::PullSaleJob).to have_received(:perform_later).with(sale.shopify_store_id, requested_by: admin)
       expect(response).to redirect_to(sales_path)
     end
 
     it "says the pull was queued" do
       post sale_pull_path(sale)
 
-      expect(flash[:notice]).to include(message: "Queued a new pull of this order from the store. Visit")
+      expect(flash[:notice]).to include(message: start_with("Started pulling this order from the store."))
     end
 
     it "does not update the bulk sync timestamp" do

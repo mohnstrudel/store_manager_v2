@@ -10,8 +10,8 @@ RSpec.describe "Sales Sync API" do
       freeze_time do
         post sales_bulk_pull_path
 
-        expect(Shopify::PullSalesJob).to have_been_enqueued.with(changes_only: false)
-        expect(Woo::PullSalesJob).to have_been_enqueued.with(limit: nil).at(90.seconds.from_now)
+        expect(Shopify::PullSalesJob).to have_been_enqueued.with(changes_only: false, requested_by: admin)
+        expect(Woo::PullSalesJob).to have_been_enqueued.with(limit: nil, requested_by: admin).at(90.seconds.from_now)
         expect(Seal::SyncPaymentPlansJob).not_to have_been_enqueued
       end
     end
@@ -20,8 +20,8 @@ RSpec.describe "Sales Sync API" do
       freeze_time do
         post sales_bulk_pull_path(scope: "changes")
 
-        expect(Shopify::PullSalesJob).to have_been_enqueued.with(changes_only: true)
-        expect(Woo::PullSalesJob).to have_been_enqueued.with(limit: 100).at(90.seconds.from_now)
+        expect(Shopify::PullSalesJob).to have_been_enqueued.with(changes_only: true, requested_by: admin)
+        expect(Woo::PullSalesJob).to have_been_enqueued.with(limit: 100, requested_by: admin).at(90.seconds.from_now)
         expect(Seal::SyncPaymentPlansJob).not_to have_been_enqueued
       end
     end
@@ -29,8 +29,8 @@ RSpec.describe "Sales Sync API" do
     it "pulls everything when only the retired limit param is sent", :aggregate_failures do
       post sales_bulk_pull_path(limit: "100")
 
-      expect(Shopify::PullSalesJob).to have_been_enqueued.with(changes_only: false)
-      expect(Woo::PullSalesJob).to have_been_enqueued.with(limit: nil)
+      expect(Shopify::PullSalesJob).to have_been_enqueued.with(changes_only: false, requested_by: admin)
+      expect(Woo::PullSalesJob).to have_been_enqueued.with(limit: nil, requested_by: admin)
     end
 
     it "leaves the stored sync time to the pull itself" do
@@ -43,8 +43,8 @@ RSpec.describe "Sales Sync API" do
       post sales_bulk_pull_path
 
       expect(response).to redirect_to(sales_path)
-      expect(flash[:notice]).to include(message: "Success! Visit")
-      expect(flash[:notice]).to include(link: hash_including(label: "jobs statuses dashboard"))
+      expect(flash[:notice]).to include(message: start_with("Started. You'll get a notification"))
+      expect(flash[:notice]).to include(link: hash_including(label: "jobs dashboard"))
     end
   end
 end

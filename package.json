@@ -16,11 +16,13 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@base-ui/react": "^1.9.0",
     "@dnd-kit/helpers": "^0.5.3",
     "@dnd-kit/react": "^0.5.3",
     "@floating-ui/react": "^0.27.20",
     "@inertiajs/react": "^3.11.0",
     "@js-from-routes/client": "^1.0.4",
+    "@rails/actioncable": "^8.1.401",
     "@rails/activestorage": "^8.1.401",
     "@tiptap/extension-link": "^3.33.0",
     "@tiptap/extension-text-align": "^3.33.0",
@@ -40,6 +42,7 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/node": "^26.6.6",
+    "@types/rails__actioncable": "^8.0.3",
     "@types/rails__activestorage": "^8.0.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

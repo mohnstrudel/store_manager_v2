@@ -2,9 +2,11 @@
 
 module Shopify
   class PullProductJob < Shopify::ApiJob
+    include NotifiesRequester
+
     queue_as :default
 
-    def perform(shopify_product_id)
+    def perform(shopify_product_id, requested_by: nil)
       payload = Shopify::Api::Client.new.fetch_product(shopify_product_id)
 
       if payload.blank?
@@ -12,6 +14,14 @@ module Shopify
       else
         Product::Shopify::Importer.import(Product::Shopify::Parser.parse(payload), force: true)
       end
+
+      notify_requester_of_success("#{job_title} finished.")
+    end
+
+    private
+
+    def job_title
+      "Shopify product pull"
     end
   end
 end

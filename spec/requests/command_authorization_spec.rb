@@ -122,7 +122,7 @@ RSpec.describe "Command endpoint authorization" do
 
   def expect_forbidden_redirect
     expect(response).to redirect_to(noop_path)
-    expect(flash[:error]).to start_with("You don't have permission to view the")
+    expect(flash[:alert]).to start_with("You don't have permission to view the")
   end
 
   admin_only.each do |name, (request, state)|

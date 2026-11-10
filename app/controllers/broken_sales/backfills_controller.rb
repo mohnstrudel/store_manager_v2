@@ -5,7 +5,7 @@ module BrokenSales
     include JobsStatusNotice
 
     def create
-      Variant::AssignmentBackfillJob.perform_later
+      Variant::AssignmentBackfillJob.perform_later(requested_by: Current.user)
       set_jobs_status_notice
 
       redirect_to broken_sales_path

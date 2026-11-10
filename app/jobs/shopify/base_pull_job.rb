@@ -2,12 +2,14 @@
 
 module Shopify
   class BasePullJob < Shopify::ApiJob
+    include NotifiesRequester
+
     CHANGES_OVERLAP = 15.minutes
 
     queue_as :default
     discard_on(Shopify::Pull::Failed) { |_job, error| Sentry.capture_exception(error) }
 
-    def perform(changes_only: false, cursor: nil, started_at: nil, updated_since: nil)
+    def perform(changes_only: false, cursor: nil, started_at: nil, updated_since: nil, requested_by: nil)
       if cursor.nil?
         started_at = Time.current
         updated_since = changes_since if changes_only
@@ -16,9 +18,10 @@ module Shopify
       page = pull_class.page(cursor:, updated_since:)
 
       if page.next_cursor
-        self.class.perform_later(cursor: page.next_cursor, started_at:, updated_since:)
+        self.class.perform_later(cursor: page.next_cursor, started_at:, updated_since:, **{requested_by:}.compact)
       else
         complete_pull(started_at:, updated_since:)
+        notify_requester_of_success("#{job_title} finished.") if page.failures.empty?
       end
 
       raise Shopify::Pull::Failed, page.failures if page.failures.any?
@@ -49,6 +52,10 @@ module Shopify
     end
 
     def handle_terminal_page(updated_since:)
+    end
+
+    def job_title
+      raise NotImplementedError, "#{self.class} must implement #job_title"
     end
   end
 end

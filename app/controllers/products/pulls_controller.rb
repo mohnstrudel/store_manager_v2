@@ -5,7 +5,7 @@ module Products
     include JobsStatusNotice
 
     def create
-      Shopify::PullProductsJob.perform_later(changes_only: params[:scope] == "changes")
+      Shopify::PullProductsJob.perform_later(changes_only: params[:scope] == "changes", requested_by: Current.user)
       set_jobs_status_notice
 
       redirect_back_or_to(products_path)

@@ -25,6 +25,8 @@ RSpec.describe Shopify::BasePullJob do
       define_method(:last_sync_at) { last_sync_at }
       define_method(:stamp_sync) { |started_at| stamped_syncs << started_at }
       define_method(:handle_terminal_page) { |updated_since:| terminal_pages << updated_since }
+      define_method(:job_title) { "Test pull" }
+      define_method(:failure_notification) { |_error| {message: "Some test records could not be pulled."} }
     end
   end
   let(:job) { job_class.new }
@@ -201,6 +203,40 @@ RSpec.describe Shopify::BasePullJob do
           expect(terminal_pages).to eq([nil])
           expect(Sentry).to have_received(:capture_exception).with(an_instance_of(Shopify::Pull::Failed))
         end
+      end
+    end
+
+    context "when a requester is given" do
+      let(:user) { create(:user) }
+
+      it "carries the requester to the next page" do
+        allow(pull_class).to receive(:page).and_return(Shopify::Pull::Page.new(imported_count: 2, next_cursor: "next", failures: []))
+
+        expect { travel_to(started_at) { job.perform(requested_by: user) } }
+          .to have_enqueued_job(job_class).with(cursor: "next", started_at:, updated_since: nil, requested_by: user)
+      end
+
+      it "tells the requester nothing while more pages remain" do
+        allow(pull_class).to receive(:page).and_return(Shopify::Pull::Page.new(imported_count: 2, next_cursor: "next", failures: []))
+
+        expect { job.perform(requested_by: user) }.not_to have_broadcasted_to(user).from_channel(NotificationsChannel)
+      end
+
+      it "tells the requester the pull finished after a clean last page" do
+        expect { job_class.perform_now(requested_by: user) }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "notice", message: "Test pull finished.").exactly(:once)
+      end
+
+      it "tells the requester only about the failures after a last page with failures" do # rubocop:disable RSpec/ExampleLength
+        failures = [Shopify::Pull::Failure.new(store_id: "gid://1", message: "boom", failed_at: Time.current)]
+        allow(pull_class).to receive(:page).and_return(Shopify::Pull::Page.new(imported_count: 1, next_cursor: nil, failures:))
+        allow(Sentry).to receive(:capture_exception)
+
+        expect { job_class.perform_now(requested_by: user) }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel).exactly(:once)
+          .and have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "Some test records could not be pulled.")
       end
     end
 

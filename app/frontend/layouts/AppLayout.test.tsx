@@ -8,8 +8,8 @@ vi.mock("@/components/app-navigation/AppNavigation", () => ({
   default: () => <nav data-testid="app-navigation" />,
 }));
 
-vi.mock("@/components/flash-messages/FlashMessages", () => ({
-  default: () => <div data-testid="flash-messages" />,
+vi.mock("@/components/notifications/Notifications", () => ({
+  default: () => <div data-testid="notifications" />,
 }));
 
 vi.mock("@/components/breadcrumbs/Breadcrumbs", () => ({
@@ -17,7 +17,7 @@ vi.mock("@/components/breadcrumbs/Breadcrumbs", () => ({
 }));
 
 describe("AppLayout", () => {
-  it("renders navigation, flash messages, breadcrumbs, and children", () => {
+  it("renders navigation, notifications, breadcrumbs, and children", () => {
     render(
       <AppLayout>
         <h1>Page Content</h1>
@@ -25,7 +25,7 @@ describe("AppLayout", () => {
     );
 
     expect(screen.getByTestId("app-navigation")).toBeInTheDocument();
-    expect(screen.getByTestId("flash-messages")).toBeInTheDocument();
+    expect(screen.getByTestId("notifications")).toBeInTheDocument();
     expect(screen.getByTestId("breadcrumbs")).toBeInTheDocument();
     expect(screen.getByText("Page Content")).toBeInTheDocument();
   });

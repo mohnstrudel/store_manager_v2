@@ -9,10 +9,10 @@ module Sales
       shopify_id = @sale.shopify_store_id
       woo_id = @sale.woo_store_id
 
-      Shopify::PullSaleJob.perform_later(shopify_id) if shopify_id
-      Woo::PullSalesJob.set(wait: 90.seconds).perform_later(id: woo_id) if woo_id
+      Shopify::PullSaleJob.perform_later(shopify_id, requested_by: Current.user) if shopify_id
+      Woo::PullSalesJob.set(wait: 90.seconds).perform_later(id: woo_id, requested_by: Current.user) if woo_id
 
-      set_jobs_status_notice(message: "Queued a new pull of this order from the store. Visit")
+      set_jobs_status_notice(message: "Started pulling this order from the store. You'll get a notification when it finishes. To follow progress, open the")
       redirect_back_or_to(sales_path)
     end
 

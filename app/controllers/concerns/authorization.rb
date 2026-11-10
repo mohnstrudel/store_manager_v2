@@ -19,7 +19,7 @@ module Authorization
 
   def user_not_authorized
     page_name = controller_name.humanize
-    flash[:error] = "You don't have permission to view the #{page_name} page"
+    flash[:alert] = "You don't have permission to view the #{page_name} page"
     redirect_back_or_to noop_path
   end
 end

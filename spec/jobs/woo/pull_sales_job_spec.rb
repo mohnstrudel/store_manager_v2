@@ -77,4 +77,29 @@ RSpec.describe Woo::PullSalesJob, :aggregate_failures do
       expect { described_class.perform_now }.to have_enqueued_job(described_class)
     end
   end
+
+  describe "requester notifications" do
+    let(:user) { create(:user) }
+
+    it "tells the requester a sales pull finished" do
+      expect { described_class.perform_now(limit: 100, requested_by: user) }
+        .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+        .with(kind: "notice", message: "WooCommerce sales pull finished.")
+    end
+
+    it "tells the requester a single order pull finished" do
+      expect { described_class.perform_now(id: "123", requested_by: user) }
+        .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+        .with(kind: "notice", message: "WooCommerce order pull finished.")
+    end
+
+    it "tells the requester when some orders could not be pulled" do
+      allow(Sale::Woo::Pull).to receive(:run).and_raise(Sale::Woo::Pull::Failed.new([]))
+      allow(Sentry).to receive(:capture_exception)
+
+      expect { described_class.perform_now(requested_by: user) }
+        .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+        .with(kind: "alert", message: "Some WooCommerce orders could not be pulled.", link: {label: "Open broken sales", href: "/broken_sales"})
+    end
+  end
 end
