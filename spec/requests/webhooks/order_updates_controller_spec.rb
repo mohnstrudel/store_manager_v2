@@ -10,10 +10,12 @@ RSpec.describe Webhooks::OrderUpdatesController do
     JSON.parse(file_fixture("parsed_hooks_order.json").read, symbolize_names: true)
   }
 
-  it "rejects a payload with a wrong signature without importing it" do
+  before do
     allow(ENV).to receive(:fetch).and_call_original
     allow(ENV).to receive(:fetch).with("WOO_WEBHOOK_SECRET").and_return("order-secret")
+  end
 
+  it "rejects a payload with a wrong signature without importing it" do
     expect {
       post "/update-order", params: request_body, headers: {"CONTENT_TYPE" => "application/json", "x-wc-webhook-signature" => "wrong"}
     }.not_to change(Sale, :count)
@@ -91,8 +93,6 @@ RSpec.describe Webhooks::OrderUpdatesController do
   # rubocop:disable RSpec/ExampleLength
   describe "when we receive a payload from Webhook" do
     before do
-      allow(ENV).to receive(:fetch).and_call_original
-      allow(ENV).to receive(:fetch).with("WOO_WEBHOOK_SECRET").and_return("order-secret")
       create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
       customer = create(:customer, :synced, woo_id: parsed_order[:customer][:woo_id])
       sale = create(:sale, :synced, woo_id: parsed_order[:sale][:woo_id], customer:)
