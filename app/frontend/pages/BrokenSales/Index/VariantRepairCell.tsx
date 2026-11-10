@@ -2,8 +2,7 @@ import { InlineCellEditor, useInlineCellForm } from "@/components/inline-cell-ed
 import routes from "@/utils/routes";
 
 import type { PurchaseAssignmentIssue, SaleItemAssignmentIssue } from "../types";
-
-export const reloadProps = ["issues", "counts", "pagination", "repairable"];
+import { reloadProps } from "./reloadProps";
 
 export default function VariantRepairCell({
   issue,

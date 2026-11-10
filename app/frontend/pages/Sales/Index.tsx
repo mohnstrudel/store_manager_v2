@@ -6,6 +6,7 @@ import Pagination from "@/components/Pagination";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import SyncModal from "@/components/SyncModal";
 import type { SalesIndex } from "@/types/serializers";
+import { countLabel } from "@/utils/countLabel";
 import routes from "@/utils/routes";
 import { useModalVisibility } from "@/utils/useModalVisibility";
 
@@ -44,7 +45,6 @@ export default function Index({
               aria-label={brokenLinkLabel(broken_problem_count)}
               className="relative"
               href={routes.brokenSales.index.path()}
-              prefetch
             >
               <BugIcon />
               Broken
@@ -126,7 +126,7 @@ export default function Index({
 function brokenLinkLabel(count: number | null) {
   if (!count) return undefined;
 
-  return `Broken, ${count} problem${count === 1 ? "" : "s"}`;
+  return `Broken, ${countLabel(count, "problem")}`;
 }
 
 function badgeCount(count: number) {

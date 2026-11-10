@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { makePagination } from "@/test/factories";
-import { mockPage, nextFormErrors } from "@/test/mocks/inertia";
+import { mockPage, nextFormErrors, nextFormPending } from "@/test/mocks/inertia";
 import type { PaginationMeta } from "@/types/pagination";
 
 import Index from "./Index";
@@ -19,6 +19,20 @@ import type {
   ProductIssueRow,
   SaleItemAssignmentIssue,
 } from "./types";
+
+const reloadedProps = [
+  "issue_type",
+  "view",
+  "filter",
+  "scope",
+  "product_id",
+  "product_title",
+  "counts",
+  "repairable",
+  "filters",
+  "issues",
+  "pagination",
+];
 
 describe("BrokenSales/Index", () => {
   beforeEach(() => {
@@ -64,10 +78,40 @@ describe("BrokenSales/Index", () => {
     await user.selectOptions(screen.getByRole("combobox", { name: "Issue filter" }), "");
 
     expect(router.get).toHaveBeenCalledWith(
-      "/broken_sales",
-      { issue_type: "purchases", reason: undefined },
+      "/broken_sales?issue_type=purchases",
+      {},
       { preserveState: true },
     );
+  });
+
+  it("filters by a reason through the URL and starts again from the first page", async () => {
+    const user = userEvent.setup();
+    renderPage({
+      filter: "",
+      pagination: makePagination({ current_page: 2, total_pages: 3, total_count: 60, limit: 25 }),
+    });
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Issue filter" }),
+      "product_mismatch",
+    );
+
+    expect(router.get).toHaveBeenCalledWith(
+      "/broken_sales?issue_type=purchases&reason=product_mismatch",
+      {},
+      { preserveState: true },
+    );
+  });
+
+  it("names the tabs and the pages after Broken Sales", () => {
+    renderPage({
+      pagination: makePagination({ current_page: 1, total_pages: 2, total_count: 30, limit: 25 }),
+    });
+
+    expect([
+      screen.queryByRole("tablist", { name: "Broken Sales issue types" }),
+      screen.queryByRole("navigation", { name: "Broken Sales pagination" }),
+    ]).not.toContain(null);
   });
 
   it("hides tabs with no items, keeping the selected empty tab visible", () => {
@@ -115,9 +159,7 @@ describe("BrokenSales/Index", () => {
         purchase: { variant_id: "12" },
         return_to: "/broken_sales?issue_type=purchases&reason=missing_variant",
       },
-      expect.objectContaining({
-        only: ["issues", "counts", "pagination", "repairable"],
-      }),
+      expect.objectContaining({ only: reloadedProps }),
     );
   });
 
@@ -145,22 +187,6 @@ describe("BrokenSales/Index", () => {
 
   it("shows link evidence and runs one silent repair resource", async () => {
     const user = userEvent.setup();
-    const linkIssue: AssignmentIssue = {
-      kind: "purchase_item_link",
-      id: 31,
-      reason: "sale_item_identity",
-      purchase_id: 4,
-      purchase_path: "/purchases/purchase-4",
-      sale_item_id: 9,
-      sale_path: "/sales/2",
-      purchase_product_title: "Product A",
-      purchase_variant_label: "Blue",
-      sale_product_title: "Product B",
-      sale_variant_label: "Large",
-      exact_replacements_available: 1,
-      exact_replacement_ids: [44],
-      remaining_capacity_after_unlink: 2,
-    };
 
     renderPage({
       issueType: "purchase_item_links",
@@ -169,7 +195,7 @@ describe("BrokenSales/Index", () => {
         { value: "purchase_identity", label: "Purchase identity mismatch" },
         { value: "sale_item_identity", label: "SaleItem identity mismatch" },
       ],
-      issues: [linkIssue],
+      issues: [makeLinkIssue()],
     });
 
     expect(screen.getByText("Product A / Blue")).toBeInTheDocument();
@@ -185,11 +211,21 @@ describe("BrokenSales/Index", () => {
       {
         return_to: "/broken_sales?issue_type=purchases&reason=missing_variant",
       },
-      expect.objectContaining({
-        only: ["issues", "counts", "pagination", "repairable"],
-        preserveScroll: true,
-      }),
+      expect.objectContaining({ only: reloadedProps, preserveScroll: true }),
     );
+  });
+
+  it("repairs a link once while the repair is running", async () => {
+    const user = userEvent.setup();
+    nextFormPending.mockReturnValueOnce(true);
+    renderPage({ issueType: "purchase_item_links", issues: [makeLinkIssue()] });
+    const repair = screen.getByRole("button", { name: "Repair PurchaseItem link 31" });
+
+    await user.click(repair);
+    await user.click(repair);
+
+    expect(repair).toBeDisabled();
+    expect(router.patch).toHaveBeenCalledTimes(1);
   });
 
   it("renders the sku_collisions tab with count badge and no repair action", () => {
@@ -306,13 +342,44 @@ describe("BrokenSales/Index", () => {
     expect(confirm).toHaveBeenCalledWith(
       "Assign the Variant to every line that has only one possible Variant? Lines where several Variants fit are skipped and stay here for you to choose.",
     );
+    expect(router.post).not.toHaveBeenCalled();
     confirm.mockRestore();
   });
 
-  it("uses the approved empty state", () => {
-    renderPage({ issues: [], pagination: makePagination({ total_count: 0 }) });
+  it("starts the backfill once the confirmation is accepted", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderPage({ repairable: true });
 
-    expect(screen.getByText("No Variant assignment issues")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Fix obvious cases" }));
+
+    expect(router.post).toHaveBeenCalledWith("/broken_sales/backfill", {}, {});
+  });
+
+  it("starts the backfill once while its request is running", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    nextFormPending.mockReturnValueOnce(true);
+    renderPage({ repairable: true });
+    const fix = screen.getByRole("button", { name: "Fix obvious cases" });
+
+    await user.click(fix);
+    await user.click(fix);
+
+    expect(fix).toBeDisabled();
+    expect(router.post).toHaveBeenCalledTimes(1);
+  });
+
+  it.each<[IssueType, string]>([
+    ["purchases", "No Purchases need a Variant"],
+    ["purchase_item_links", "No PurchaseItem links need repair"],
+    ["sku_collisions", "No Variants share a SKU"],
+    ["shopify_conflicts", "No Shopify Variants have conflicting options"],
+  ])("shows an empty state for the %s tab", (issueType, message) => {
+    renderPage({ issueType, issues: [], pagination: makePagination({ total_count: 0 }) });
+
+    expect(screen.getByText(message)).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 
   it("lists the tabs in the approved order", () => {
@@ -558,6 +625,24 @@ describe("BrokenSales/Index", () => {
     );
   });
 
+  it("queues a pull once while the pull is being sent", async () => {
+    const user = userEvent.setup();
+    nextFormPending.mockReturnValueOnce(true);
+    renderPage({
+      issueType: "import_failures",
+      filter: "",
+      filters: [],
+      issues: [makeImportFailure()],
+    });
+    const pull = screen.getByRole("button", { name: "Pull Woo order 77 again" });
+
+    await user.click(pull);
+    await user.click(pull);
+
+    expect(pull).toBeDisabled();
+    expect(router.post).toHaveBeenCalledTimes(1);
+  });
+
   it("shows an empty state for the Import failures tab", () => {
     renderPage({
       issueType: "import_failures",
@@ -598,9 +683,7 @@ describe("BrokenSales/Index", () => {
         sale_item: { variant_id: "11" },
         return_to: "/broken_sales?issue_type=sale_items&scope=active",
       },
-      expect.objectContaining({
-        only: ["issues", "counts", "pagination", "repairable"],
-      }),
+      expect.objectContaining({ only: reloadedProps }),
     );
   });
 
@@ -795,10 +878,7 @@ describe("BrokenSales/Index", () => {
         closed_order_repair: { variant_id: "11" },
         return_to: "/broken_sales?issue_type=sale_items&view=products",
       },
-      expect.objectContaining({
-        only: ["issues", "counts", "pagination", "repairable"],
-        preserveScroll: true,
-      }),
+      expect.objectContaining({ only: reloadedProps, preserveScroll: true }),
     );
   });
 
@@ -931,6 +1011,25 @@ function makePurchaseIssue(): AssignmentIssue {
     inventory_units: 1,
     linked_units: 1,
     record_path: "/purchases/purchase-7",
+  };
+}
+
+function makeLinkIssue(): AssignmentIssue {
+  return {
+    kind: "purchase_item_link",
+    id: 31,
+    reason: "sale_item_identity",
+    purchase_id: 4,
+    purchase_path: "/purchases/purchase-4",
+    sale_item_id: 9,
+    sale_path: "/sales/2",
+    purchase_product_title: "Product A",
+    purchase_variant_label: "Blue",
+    sale_product_title: "Product B",
+    sale_variant_label: "Large",
+    exact_replacements_available: 1,
+    exact_replacement_ids: [44],
+    remaining_capacity_after_unlink: 2,
   };
 }
 

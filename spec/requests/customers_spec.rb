@@ -221,7 +221,7 @@ RSpec.describe "Customers" do
 
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Customers/Show")
-      expect_inertia.to have_props(flash: {notice: "Customer was successfully updated", alert: nil})
+      expect_inertia.to have_exact_flash(notice: "Customer was successfully updated")
     end
 
     it "rerenders the edit Inertia component when invalid" do

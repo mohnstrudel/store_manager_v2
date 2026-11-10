@@ -1,26 +1,36 @@
-import { usePage } from "@inertiajs/react";
-import { useEffect } from "react";
+import { router, usePage } from "@inertiajs/react";
+import { useEffect, useState } from "react";
 
 import { toast } from "@/components/ui/toast";
-import type { PageProps } from "@/types/inertia";
 
+import { isNotificationMessage, NOTIFICATION_KINDS } from "./notification";
 import NotificationContent from "./NotificationContent";
 
-const FLASH_KINDS = ["alert", "notice"] as const;
-
 export function useFlashToasts() {
-  const flash = usePage<PageProps>().props.flash;
+  const { flash } = usePage();
+  const [mountedFlash] = useState(flash);
 
   useEffect(() => {
-    if (!flash) return;
+    let lastShown: object | undefined;
 
-    for (const kind of FLASH_KINDS) {
-      const notification = flash[kind];
-      if (notification)
-        toast.add({
-          title: <NotificationContent notification={notification} />,
-          type: kind,
-        });
+    function showOnce(received: Record<string, unknown>) {
+      if (received === lastShown) return;
+
+      lastShown = received;
+      showFlash(received);
     }
-  }, [flash]);
+
+    showOnce(mountedFlash);
+
+    return router.on("flash", (event) => showOnce(event.detail.flash));
+  }, [mountedFlash]);
+}
+
+function showFlash(flash: Record<string, unknown>) {
+  for (const kind of NOTIFICATION_KINDS) {
+    const notification = flash[kind];
+    if (isNotificationMessage(notification)) {
+      toast.add({ title: <NotificationContent notification={notification} />, type: kind });
+    }
+  }
 }

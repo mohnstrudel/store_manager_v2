@@ -1,4 +1,4 @@
-import { router, usePage } from "@inertiajs/react";
+import { useForm, usePage } from "@inertiajs/react";
 import { useCallback } from "react";
 
 type ImportFailureActionsProps = {
@@ -13,15 +13,18 @@ export default function ImportFailureActions({
   sentryUrl,
 }: ImportFailureActionsProps) {
   const page = usePage();
+  const { post, processing, transform } = useForm({});
   const pullAgain = useCallback(() => {
-    router.post(pullPath, { return_to: page.url }, { preserveScroll: true });
-  }, [page.url, pullPath]);
+    transform(() => ({ return_to: page.url }));
+    post(pullPath, { preserveScroll: true });
+  }, [page.url, post, pullPath, transform]);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <button
         aria-label={`Pull ${orderName} again`}
         className="btn_xs"
+        disabled={processing}
         onClick={pullAgain}
         type="button"
       >

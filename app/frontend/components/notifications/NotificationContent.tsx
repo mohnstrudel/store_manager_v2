@@ -1,6 +1,10 @@
-import type { FlashMessage } from "@/types/inertia";
+import type { NotificationMessage } from "./notification";
 
-export default function NotificationContent({ notification }: { notification: FlashMessage }) {
+export default function NotificationContent({
+  notification,
+}: {
+  notification: NotificationMessage;
+}) {
   if (typeof notification === "string") return notification;
 
   const { link, message } = notification;
@@ -14,7 +18,6 @@ export default function NotificationContent({ notification }: { notification: Fl
           <a className="link" href={link.href}>
             {link.label}
           </a>
-          {link.suffix ? ` ${link.suffix}` : null}
         </>
       ) : null}
     </>

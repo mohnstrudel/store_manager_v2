@@ -2,19 +2,17 @@ import { Link, useForm, usePage } from "@inertiajs/react";
 import { useCallback, type ChangeEvent } from "react";
 
 import FormError from "@/components/FormError";
+import { countLabel } from "@/utils/countLabel";
 import routes from "@/utils/routes";
 
 import type { AssignmentIssue, ProductIssueRow } from "../types";
+import EmptyIssues from "./EmptyIssues";
 import { issuePath } from "./issuePath";
-import { reloadProps } from "./VariantRepairCell";
+import { reloadProps } from "./reloadProps";
 
 export default function ProductIssues({ issues }: { issues: AssignmentIssue[] }) {
   if (issues.length === 0) {
-    return (
-      <p className="py-12 text-center text-gray-500 dark:text-gray-400">
-        No Products have orders that need a Variant
-      </p>
-    );
+    return <EmptyIssues>No Products have orders that need a Variant</EmptyIssues>;
   }
 
   return (
@@ -61,10 +59,6 @@ function ProductRow({ row }: { row: ProductIssueRow }) {
       </td>
     </tr>
   );
-}
-
-function countLabel(count: number, noun: string) {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
 function ClosedOrderRepair({ row }: { row: ProductIssueRow }) {

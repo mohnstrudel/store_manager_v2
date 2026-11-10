@@ -11,7 +11,6 @@ class ApplicationController < ActionController::Base
     SharedPropsResource.new({
       breadcrumb: helpers.breadcrumb_title,
       user: current_user,
-      flash:,
       csrf_token: form_authenticity_token
     }).serializable_hash
   end

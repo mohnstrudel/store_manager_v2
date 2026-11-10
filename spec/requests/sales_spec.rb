@@ -411,7 +411,7 @@ RSpec.describe "Sales" do
 
         expect(response).to have_http_status(:ok)
         expect(listed_ids).to eq([sale_a.id, sale_b.id, sale_c.id])
-        expect(inertia.props[:flash].compact).to be_empty
+        expect(inertia.flash).to be_empty
       end
 
       it "redirects an invalid or deleted tag_id to the canonical listing with the explanation and no loop" do
@@ -424,7 +424,7 @@ RSpec.describe "Sales" do
           expect(response).to redirect_to(sales_path(q: "batch", sort: "oldest", hide_partial_payments: "1", missing_purchases_only: "1"))
           follow_redirect!
           expect(response).to have_http_status(:ok)
-          expect(inertia.props[:flash]["notice"]).to eq(unavailable_notice)
+          expect(inertia.flash["notice"]).to eq(unavailable_notice)
           expect_inertia.to have_props(filters: {hide_partial_payments: true, missing_purchases_only: true, tag_id: nil})
         end
       end

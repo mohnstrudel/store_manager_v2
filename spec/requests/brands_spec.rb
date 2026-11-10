@@ -133,7 +133,7 @@ RSpec.describe "Brands" do
 
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Brands/Show")
-      expect_inertia.to have_props(flash: {notice: "Brand was successfully updated", alert: nil})
+      expect_inertia.to have_exact_flash(notice: "Brand was successfully updated")
     end
 
     it "rerenders the edit Inertia component when invalid" do

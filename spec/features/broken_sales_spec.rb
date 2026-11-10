@@ -26,7 +26,8 @@ RSpec.feature "Broken sales" do
       click_button "Save"
     end
 
-    expect(page).to have_text("No Variant assignment issues")
+    expect(page).to have_text("Purchase Variant was repaired")
+    expect(page).to have_text("No Purchases need a Variant")
     expect(page).to have_no_selector("tr[aria-label='BROKEN-42']")
     expect(page).to have_current_path(broken_sales_path)
   end
@@ -55,6 +56,8 @@ RSpec.feature "Broken sales" do
     end
 
     expect(page).to have_no_selector("tr[aria-label='#{reference}']")
+    expect(page).to have_css("[role='tab'][aria-selected='true']", text: "Purchases")
+    expect(page).to have_text("No Purchases need a Variant")
     expect(line.reload.variant).to eq(variant)
   end
 end

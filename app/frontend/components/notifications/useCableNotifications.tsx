@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
 import { toast } from "@/components/ui/toast";
-import type { FlashMessage } from "@/types/inertia";
 
+import { isCableNotification } from "./notification";
 import NotificationContent from "./NotificationContent";
 
 export function useCableNotifications(enabled: boolean) {
@@ -20,7 +20,7 @@ export function useCableNotifications(enabled: boolean) {
         received: showNotification,
       });
       disconnect = () => consumer.disconnect();
-    });
+    }, ignoreLoadFailure);
 
     return () => {
       cancelled = true;
@@ -29,14 +29,15 @@ export function useCableNotifications(enabled: boolean) {
   }, [enabled]);
 }
 
-function showNotification({ kind, ...notification }: CableNotification) {
+function ignoreLoadFailure() {}
+
+function showNotification(data: unknown) {
+  if (!isCableNotification(data)) return;
+
+  const { kind, ...notification } = data;
   toast.add({
     timeout: 0,
     title: <NotificationContent notification={notification} />,
     type: kind,
   });
 }
-
-type CableNotification = Exclude<FlashMessage, string> & {
-  kind: "alert" | "notice";
-};

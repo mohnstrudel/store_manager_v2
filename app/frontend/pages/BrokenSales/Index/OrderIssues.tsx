@@ -9,6 +9,7 @@ import type {
   OrderScope,
   SaleItemAssignmentIssue,
 } from "../types";
+import EmptyIssues from "./EmptyIssues";
 import ImportFailureActions from "./ImportFailureActions";
 import { issuePath } from "./issuePath";
 import OrderTitle, { orderName } from "./OrderTitle";
@@ -124,11 +125,7 @@ function ProductChip({ scope, title }: { scope: OrderScope; title: string }) {
 
 function OrderRows({ issues, scope }: Pick<OrderIssuesProps, "issues" | "scope">) {
   if (issues.length === 0) {
-    return (
-      <p className="py-12 text-center text-gray-500 dark:text-gray-400">
-        {scopes.find((option) => option.scope === scope)?.empty}
-      </p>
-    );
+    return <EmptyIssues>{scopes.find((option) => option.scope === scope)?.empty}</EmptyIssues>;
   }
 
   return <OrderTable issues={issues} />;

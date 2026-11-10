@@ -273,7 +273,6 @@ describe("Sales/Index", () => {
             "tag_options",
             "tag_colors",
             "can_tag_sales",
-            "flash",
           ],
           preserveState: true,
         }),
@@ -928,7 +927,6 @@ describe("Sales/Index", () => {
       "tag_options",
       "tag_colors",
       "can_tag_sales",
-      "flash",
     ];
 
     function renderTagged(tags: SalesTagRecord[] = [vip], options: IndexOptions = {}) {

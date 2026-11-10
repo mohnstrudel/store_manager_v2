@@ -9,17 +9,9 @@ export type SalesListingSettings = SalesFilters & {
 
 const TAG_PROPS = ["tag_options", "tag_colors", "can_tag_sales"];
 
-export const LISTING_PROPS = [
-  "sales",
-  "pagination",
-  "search",
-  "sort",
-  "filters",
-  ...TAG_PROPS,
-  "flash",
-];
+export const LISTING_PROPS = ["sales", "pagination", "search", "sort", "filters", ...TAG_PROPS];
 
-export const TAG_SAVE_PROPS = ["sales", "pagination", "filters", ...TAG_PROPS, "flash"];
+export const TAG_SAVE_PROPS = ["sales", "pagination", "filters", ...TAG_PROPS];
 
 export function listingHref(settings: SalesListingSettings) {
   const path = routes.sales.list.path();

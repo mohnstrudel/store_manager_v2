@@ -1,15 +1,10 @@
 import type { AssignmentIssue, ImportFailureRow } from "../types";
+import EmptyIssues from "./EmptyIssues";
 import ImportFailureActions from "./ImportFailureActions";
 import OrderTitle, { orderName } from "./OrderTitle";
 
 export default function ImportFailures({ issues }: { issues: AssignmentIssue[] }) {
-  if (issues.length === 0) {
-    return (
-      <p className="py-12 text-center text-gray-500 dark:text-gray-400">
-        No orders are failing to import
-      </p>
-    );
-  }
+  if (issues.length === 0) return <EmptyIssues>No orders are failing to import</EmptyIssues>;
 
   return (
     <div className="overflow-x-auto">

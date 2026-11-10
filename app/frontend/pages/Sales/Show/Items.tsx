@@ -13,6 +13,7 @@ import DetailsChevron from "@/components/DetailsChevron";
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import type { WarehouseOption } from "@/types/warehouse";
+import { countLabel } from "@/utils/countLabel";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
 
@@ -126,7 +127,7 @@ function SaleItemRow({
         {missingPurchasesCount > 0 && (
           <mark className="block uppercase tracking-wide text-xs w-fit mt-2 -ml-1">
             <span className="font-semibold">
-              MISSING {missingPurchasesCount} PURCHASE{missingPurchasesCount === 1 ? "" : "S"}
+              MISSING {countLabel(missingPurchasesCount, "purchase").toUpperCase()}
             </span>
           </mark>
         )}
