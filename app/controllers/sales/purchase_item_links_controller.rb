@@ -6,7 +6,7 @@ module Sales
 
     def create
       @sale.link_purchase_items
-      redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products"
+      redirect_to @sale, success: "Sold products were interlinked with purchased products"
     end
 
     private

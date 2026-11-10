@@ -36,7 +36,7 @@ module NotifiesRequester
   end
 
   def notify_requester_of_success(message)
-    requester&.notify(kind: :notice, message:)
+    requester&.notify(kind: :success, message:)
   end
 
   def jobs_dashboard_link

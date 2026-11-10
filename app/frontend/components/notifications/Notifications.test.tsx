@@ -131,7 +131,7 @@ describe("Notifications", () => {
       const received = await subscribedReceiver();
 
       vi.useFakeTimers();
-      act(() => received({ kind: "notice", message: "Shopify sales pull finished." }));
+      act(() => received({ kind: "success", message: "Shopify sales pull finished." }));
       act(() => {
         vi.advanceTimersByTime(60_000);
       });

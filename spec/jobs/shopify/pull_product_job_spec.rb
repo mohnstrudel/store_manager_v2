@@ -173,7 +173,7 @@ RSpec.describe Shopify::PullProductJob do
     it "tells the requester the pull finished" do
       expect { described_class.perform_now(product_id, requested_by: user) }
         .to have_broadcasted_to(user).from_channel(NotificationsChannel)
-        .with(kind: "notice", message: "Shopify product pull finished.")
+        .with(kind: "success", message: "Shopify product pull finished.")
     end
 
     it "tells nobody when nobody asked" do

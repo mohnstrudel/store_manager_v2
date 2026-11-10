@@ -37,7 +37,7 @@ RSpec.describe Variant::AssignmentBackfillJob do
 
       expect { described_class.perform_now(requested_by: user) }
         .to have_broadcasted_to(user).from_channel(NotificationsChannel)
-        .with(kind: "notice", message: "Broken sales repair finished.")
+        .with(kind: "success", message: "Broken sales repair finished.")
     end
 
     it "tells the requester some sales could not be repaired" do

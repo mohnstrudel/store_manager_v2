@@ -142,7 +142,7 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
 
         expect { described_class.perform_now(requested_by: user) }
           .to have_broadcasted_to(user).from_channel(NotificationsChannel)
-          .with(kind: "notice", message: "Shopify products pull finished.")
+          .with(kind: "success", message: "Shopify products pull finished.")
       end
     end
 

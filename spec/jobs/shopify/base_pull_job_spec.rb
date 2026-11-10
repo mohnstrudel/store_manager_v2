@@ -264,7 +264,7 @@ RSpec.describe Shopify::BasePullJob do
       it "tells the requester the pull finished after a clean last page" do
         expect { job_class.perform_now(requested_by: user) }
           .to have_broadcasted_to(user).from_channel(NotificationsChannel)
-          .with(kind: "notice", message: "Test pull finished.").exactly(:once)
+          .with(kind: "success", message: "Test pull finished.").exactly(:once)
       end
 
       it "tells the requester only about the failures after a last page with failures" do # rubocop:disable RSpec/ExampleLength

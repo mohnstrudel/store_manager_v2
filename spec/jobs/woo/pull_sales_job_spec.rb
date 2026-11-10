@@ -130,7 +130,7 @@ RSpec.describe Woo::PullSalesJob, :aggregate_failures do
 
       it "never tells the requester the pull finished", :aggregate_failures do
         expect { perform_enqueued_jobs { described_class.perform_later(requested_by: user) } }
-          .not_to have_broadcasted_to(user).from_channel(NotificationsChannel).with(kind: "notice", message: "WooCommerce sales pull finished.")
+          .not_to have_broadcasted_to(user).from_channel(NotificationsChannel).with(kind: "success", message: "WooCommerce sales pull finished.")
       end
     end
 
@@ -228,13 +228,13 @@ RSpec.describe Woo::PullSalesJob, :aggregate_failures do
     it "tells the requester a sales pull finished" do
       expect { described_class.perform_now(limit: 100, requested_by: user) }
         .to have_broadcasted_to(user).from_channel(NotificationsChannel)
-        .with(kind: "notice", message: "WooCommerce sales pull finished.")
+        .with(kind: "success", message: "WooCommerce sales pull finished.")
     end
 
     it "tells the requester a single order pull finished" do
       expect { described_class.perform_now(id: "123", requested_by: user) }
         .to have_broadcasted_to(user).from_channel(NotificationsChannel)
-        .with(kind: "notice", message: "WooCommerce order pull finished.")
+        .with(kind: "success", message: "WooCommerce order pull finished.")
     end
 
     it "tells the requester when some orders could not be pulled" do

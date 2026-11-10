@@ -1,11 +1,12 @@
 import { Toast as ToastPrimitive } from "@base-ui/react/toast";
-import { PartyPopperIcon, TriangleAlertIcon, XIcon } from "lucide-react";
+import { InfoIcon, PartyPopperIcon, TriangleAlertIcon, XIcon } from "lucide-react";
 
 const toast = ToastPrimitive.createToastManager();
 
 const TOAST_CLASSES = [
   "group/toast pointer-events-auto absolute right-0 bottom-0 z-[calc(1000-var(--toast-index))] w-full origin-bottom rounded-2xl border shadow-lg will-change-transform outline-none select-none focus-visible:ring-[3px]",
-  "border-lime-200 bg-lime-100 text-lime-800 dark:border-lime-700 dark:bg-lime-900 dark:text-lime-200",
+  "border-gray-200 bg-white text-gray-950 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50",
+  "data-[type=success]:border-lime-200 data-[type=success]:bg-lime-100 data-[type=success]:text-lime-800 dark:data-[type=success]:border-lime-700 dark:data-[type=success]:bg-lime-900 dark:data-[type=success]:text-lime-200",
   "data-[type=alert]:border-red-200 data-[type=alert]:bg-red-100 data-[type=alert]:text-red-800 dark:data-[type=alert]:border-red-700 dark:data-[type=alert]:bg-red-900 dark:data-[type=alert]:text-red-200",
   "[--gap:0.75rem] [--height:var(--toast-frontmost-height,var(--toast-height))] [--offset-y:calc(var(--toast-offset-y)*-1+calc(var(--toast-index)*var(--gap)*-1)+var(--toast-swipe-movement-y))] [--peek:0.75rem] [--scale:calc(max(0,1-(var(--toast-index)*0.1)))] [--shrink:calc(1-var(--scale))]",
   "h-(--height) [transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)-(var(--toast-index)*var(--peek))-(var(--shrink)*var(--height))))_scale(var(--scale))] [transition:transform_500ms_cubic-bezier(0.22,1,0.36,1),opacity_500ms,height_150ms] motion-reduce:transition-none",
@@ -50,8 +51,13 @@ function ToastList() {
   ));
 }
 
+const TOAST_ICONS: Record<string, typeof InfoIcon> = {
+  alert: TriangleAlertIcon,
+  success: PartyPopperIcon,
+};
+
 function ToastIcon({ type }: { type: string | undefined }) {
-  const Icon = type === "alert" ? TriangleAlertIcon : PartyPopperIcon;
+  const Icon = TOAST_ICONS[type ?? ""] ?? InfoIcon;
 
   return <Icon aria-hidden="true" className="size-5 shrink-0" />;
 }

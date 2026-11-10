@@ -191,7 +191,7 @@ RSpec.describe "Sales commands" do
       post sale_purchase_item_link_path(sale_item.sale)
 
       expect(response).to redirect_to(sale_path(sale_item.sale))
-      expect(flash[:notice]).to eq("Success! Sold products were interlinked with purchased products")
+      expect(flash[:success]).to eq("Sold products were interlinked with purchased products")
       expect(purchase_item.reload.sale_item).to eq(sale_item)
     end
 

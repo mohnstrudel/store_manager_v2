@@ -5,6 +5,8 @@ class ApplicationController < ActionController::Base
   include Authorization
   include Alba::Inertia::Controller
 
+  add_flash_types :success
+
   etag { inertia_configuration.version }
 
   inertia_share do
