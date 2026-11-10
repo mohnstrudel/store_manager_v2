@@ -251,6 +251,29 @@ RSpec.describe Variant::Shopify::Importer do
       end
     end
 
+    context "when the Shopify variant was linked to the base variant but now has options" do
+      let!(:base_variant) do
+        product.base_variant.tap { |variant| variant.upsert_shopify_info(store_id: "gid://shopify/ProductVariant/red") }
+      end
+
+      let(:red_payload) do
+        {store_id: "gid://shopify/ProductVariant/red", sku: "red-sku", options: [{name: "Bonus Version", value: "Red"}]}
+      end
+
+      before { create(:variant, product:, version: create(:version, value: "Gold")) }
+
+      it "moves the Shopify link to a variant with those options and leaves the base variant as it was" do # rubocop:todo RSpec/MultipleExpectations
+        result = nil
+
+        expect { result = described_class.import(product, red_payload) }.to change(Variant, :count).by(1)
+
+        expect(result.version.value).to eq("Red")
+        expect(result.shopify_info.store_id).to eq("gid://shopify/ProductVariant/red")
+        expect(base_variant.reload).to have_attributes(base_model?: true, deactivated?: true, shopify_info: nil)
+        expect(VariantImportConflict.count).to eq(0)
+      end
+    end
+
     context "when the payload omits option dimensions the variant already has" do
       let!(:existing_variant) do
         create(:variant, product: product, version: create(:version, value: "A"), shopify_store_id: "gid://shopify/ProductVariant/1")

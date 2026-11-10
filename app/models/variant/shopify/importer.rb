@@ -53,10 +53,16 @@ class Variant::Shopify::Importer
 
   def find_or_initialize_variant
     @variant = Variant.find_by_shopify_id(parsed[:store_id]) if parsed[:store_id]
+    release_base_variant_link if base_variant_gained_options?
 
     if variant.nil? || belongs_to_different_product?
       @variant = product.variants.find_by(variant_identity_attrs) || product.variants.new
     end
+  end
+
+  def base_variant_gained_options?
+    variant&.persisted? && variant.base_model? && !belongs_to_different_product? &&
+      variant_identity_attrs.values.any?
   end
 
   def belongs_to_different_product?
@@ -147,6 +153,11 @@ class Variant::Shopify::Importer
     return if amount.blank?
 
     attributes[:purchase_cost] = convert_to_usd(amount, parsed[:usd_conversion_rate], :purchase_cost)
+  end
+
+  def release_base_variant_link
+    variant.shopify_info.destroy!
+    @variant = nil
   end
 
   def identity_holder
