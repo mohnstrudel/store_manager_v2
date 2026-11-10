@@ -63,6 +63,7 @@ class Sale::Woo::Importer
         variant: line_variant(sale_item, parsed_item[:variant])
       }.compact)
 
+      sale_item.keep_missing_variant = true
       sale_item.save!
       sale_item.upsert_woo_info(store_id: parsed_item[:sale_item_woo_id], pull_time: pulled_at) if parsed_item[:sale_item_woo_id].present?
     end

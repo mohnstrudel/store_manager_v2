@@ -4,7 +4,7 @@ module VariantAssignment
   extend ActiveSupport::Concern
 
   included do
-    attr_accessor :skip_purchase_relink, :skip_variant_assignability_check
+    attr_accessor :skip_purchase_relink, :skip_variant_assignability_check, :keep_missing_variant
 
     before_validation :normalize_variant_assignment
     validate :validate_variant_assignment
@@ -52,7 +52,7 @@ module VariantAssignment
     return if product.blank?
 
     if variant.blank?
-      errors.add(:variant, "must be selected")
+      errors.add(:variant, "must be selected") unless keep_missing_variant && variant_id_in_database.nil? && persisted?
       return
     end
 

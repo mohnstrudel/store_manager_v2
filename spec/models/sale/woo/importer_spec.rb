@@ -544,14 +544,25 @@ RSpec.describe Sale::Woo::Importer do
         expect(Sale::ImportFailure.find_by!(store_name: "woo", store_order_id: "woo-order").resolved_at).to be_nil
       end
 
-      it "names the line, product, and persisted record, and rolls the order back", :aggregate_failures do
-        sale_item = create(:sale_item, product:, sale:, variant: product.variants.real.first, woo_store_id: "woo-line")
+      it "imports the order and keeps a stored line that has no Variant", :aggregate_failures do
+        sale_item = create(:sale_item, product:, sale:, variant: product.variants.real.first, woo_store_id: "woo-line", price: 1)
         sale_item.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+
+        described_class.import(parsed_order)
+
+        expect(sale.reload.status).to eq("completed")
+        expect(sale_item.reload).to have_attributes(variant_id: nil, price: BigDecimal(10))
+      end
+
+      it "names the line, product, and persisted record, and rolls the order back", :aggregate_failures do
+        foreign_variant = create(:variant, :with_version, product: create(:product))
+        sale_item = create(:sale_item, product:, sale:, variant: product.variants.real.first, woo_store_id: "woo-line")
+        sale_item.update_column(:variant_id, foreign_variant.id) # rubocop:disable Rails/SkipsModelValidations
 
         expect { described_class.import(parsed_order) }.to raise_error(
           described_class::Error,
           "Woo line woo-line (Woo product woo-product): SaleItem ##{sale_item.id}: " \
-          "Validation failed: Variant must be selected"
+          "Validation failed: Variant must belong to the selected Product"
         )
 
         expect(sale.reload.status).to eq("processing")

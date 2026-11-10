@@ -87,7 +87,7 @@ RSpec.describe Sale::Woo::Pull, :aggregate_failures do
       let!(:sale_item) { create_sale_item_without_variant }
       let(:broken_order) do
         first_order.deep_dup.merge(
-          id: 333,
+          id: 333, status: "completed",
           line_items: [first_order[:line_items].first.merge(id: 9000, product_id: 33, meta_data: [])]
         )
       end
@@ -101,18 +101,12 @@ RSpec.describe Sale::Woo::Pull, :aggregate_failures do
 
       before { allow(client).to receive(:fetch_orders).and_return([broken_order, *woo_orders]) }
 
-      it "rolls back that order, imports the rest, and names the order, line, and record" do
-        expect { described_class.run }.to raise_error(described_class::Failed) { |error|
-          expect(error.failures.map(&:woo_id)).to eq([333])
-          expect(error.message).to include(
-            "333: Sale::Woo::Importer::Error: Woo line 9000 (Woo product 33): " \
-            "SaleItem ##{sale_item.id}: Validation failed: Variant must be selected"
-          )
-        }
+      it "imports that order and keeps the line without a Variant", :aggregate_failures do
+        expect { described_class.run }.not_to raise_error
 
-        expect(sale.reload.status).to eq("processing")
+        expect(sale.reload.status).to eq("completed")
+        expect(sale_item.reload.variant_id).to be_nil
         expect(Sale.find_by_woo_id(111)).to be_present
-        expect(Sale.find_by_woo_id(222)).to be_present
       end
     end
 

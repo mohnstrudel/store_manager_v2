@@ -34,9 +34,8 @@ RSpec.describe Webhooks::OrderUpdatesController do
 
     before do
       create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
-      variant = create(:variant, :with_version, product:)
-      sale_item = create(:sale_item, product:, sale:, variant:, woo_store_id: payload[:line_items].first[:id].to_s)
-      sale_item.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+      create(:variant, :with_version, product:)
+      sale
       allow_any_instance_of(described_class).to receive(:verify_webhook).and_return(true)
     end
 
